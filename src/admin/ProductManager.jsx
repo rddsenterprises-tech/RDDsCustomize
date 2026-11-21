@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {supabase} from '../lib/supabase';
 import {ImagePlus,Trash2,Edit3,Save,RefreshCw} from 'lucide-react';
 
-const categories=['Personalized Gifts','Neon Signs','LED Lighting','Wall Décor','Photo Gifts','Custom Apparel'];
+const categories=['Personalized Gifts','Neon Signs','LED Lighting','Wall Décor','Photo Frames','Custom Apparel'];
 const money=n=>`Rs. ${Number(n||0).toLocaleString('en-PK')}`;
 
 export default function ProductManager(){
