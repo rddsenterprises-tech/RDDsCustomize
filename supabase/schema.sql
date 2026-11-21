@@ -66,7 +66,7 @@ create table if not exists public.products (
  name text not null,
  description text,
  price numeric(12,2) not null check (price >= 0),
- category text not null check (category in ('Personalized Gifts','Neon Signs','LED Lighting','Wall Décor','Photo Gifts','Custom Apparel')),
+ category text not null check (category in ('Personalized Gifts','Neon Signs','LED Lighting','Wall Décor','Photo Frames','Custom Apparel')),
  tag text,
  image_url text,
  image_urls jsonb not null default '[]'::jsonb,
