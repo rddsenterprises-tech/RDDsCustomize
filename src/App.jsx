@@ -53,6 +53,7 @@ function App() {
       return;
     }
     if (!cart.length) return;
+    const whatsappWindow = window.open('about:blank','_blank');
     setPlacingOrder(true);
     const items = cart.map(item => ({id:item.id,name:item.name,price:item.price,quantity:1}));
     const paymentMethod = customer.payment;
@@ -63,11 +64,11 @@ function App() {
       payment_method:paymentMethod, payment_status:paymentMethod === 'bank_transfer' ? 'Awaiting verification' : 'Unpaid'
     }).select('order_number').single();
     setPlacingOrder(false);
-    if (error) { setToast('Order could not be saved. Please try again.'); return; }
+    if (error) { whatsappWindow?.close(); setToast('Order could not be saved. Please try again.'); return; }
     const itemLines = cart.map(item => `• ${item.name} — Rs. ${item.price.toLocaleString('en-PK')}`).join('\\n');
     const paymentLabel = paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Bank Transfer (proof/details to be confirmed)';
     const message = encodeURIComponent(`New RDDS Customized order: ${data.order_number}\\nName: ${customer.name}\\nPhone: ${customer.phone}\\nCity: ${customer.city}\\nAddress: ${customer.address}\\nPayment: ${paymentLabel}\\nItems:\\n${itemLines}\\nTotal: Rs. ${total.toLocaleString('en-PK')}\\nNote: ${customer.note || 'None'}`);
-    window.open(`https://wa.me/?text=${message}`,'_blank','noopener,noreferrer');
+    if (whatsappWindow) whatsappWindow.location.href = `https://wa.me/?text=${message}`;
     setCart([]); setCheckoutOpen(false); document.getElementById('cart-panel')?.close();
     setToast(`Order ${data.order_number} saved successfully`);
   };
