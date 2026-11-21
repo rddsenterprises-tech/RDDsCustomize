@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import CategoryPage from './CategoryPage';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Search, ShoppingBag, Heart, UserRound, Menu, ChevronDown, ArrowUpRight, Sparkles, Truck, ShieldCheck, Headset, Plus, Minus, X } from 'lucide-react';
@@ -8,7 +8,7 @@ const categories = [
   { name: 'Neon Signs', sub: 'Glow your style', icon: '💡', slug: 'neon-signs' },
   { name: 'LED Lighting', sub: 'Brighter ideas', icon: '🌙', slug: 'led-lighting' },
   { name: 'Wall Décor', sub: 'Transform your space', icon: '✨', slug: 'wall-decor' },
-  { name: 'Photo Frames', sub: 'Keep memories close', icon: '🖼️', slug: 'photo-gifts' },
+  { name: 'Photo Frames', sub: 'Keep memories close', icon: '🖼️', slug: 'photo-frames' },
   { name: 'Custom Apparel', sub: 'Wear your story', icon: '👕', slug: 'custom-apparel' },
 ];
 const products = [
@@ -30,6 +30,8 @@ function App() {
 
 function StoreHome() {
   const [cart, setCart] = useState([]);
+  const [catalogProducts, setCatalogProducts] = useState(products);
+  useEffect(() => { if (!supabase) return; supabase.from('products').select('*').eq('is_active', true).order('created_at', {ascending:false}).then(({data,error}) => { if (!error && data?.length) setCatalogProducts(data.map(p => ({...p, art:'✧', tone:'amber'}))); }); }, []);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -41,10 +43,10 @@ function StoreHome() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [customer, setCustomer] = useState({name:'',phone:'',email:'',city:'',address:'',note:'',payment:'cod'});
-  const visibleProducts = useMemo(() => products.filter(p =>
+  const visibleProducts = useMemo(() => catalogProducts.filter(p =>
     (activeCategory === 'All' || p.category === activeCategory) &&
     p.name.toLowerCase().includes(query.toLowerCase())
-  ), [query, activeCategory]);
+  ), [catalogProducts, query, activeCategory]);
   const addToCart = p => {
     setCart(old => [...old, p]);
     setToast(`${p.name} added to your cart`);
@@ -112,7 +114,7 @@ function StoreHome() {
       </section>
 
       <section className="section" id="shop"><div className="section-heading"><div><p className="eyebrow">CUSTOMER FAVOURITES</p><h2>Made to be <span>loved.</span></h2></div><span className="muted">{activeCategory === 'All' ? 'Our popular picks' : <button className="clear-filter" onClick={() => setActiveCategory('All')}>Clear: {activeCategory} ×</button>}</span></div>
-        <div className="product-grid">{visibleProducts.map(p => <article className="product-card" key={p.id}><div className={`product-visual ${p.tone}`}><span className="product-art">{p.art}</span><small>{p.tag}</small><button className="quick-add" onClick={() => addToCart(p)} aria-label={`Add ${p.name} to cart`}><Plus size={18}/></button></div><div className="product-info"><div><h3>{p.name}</h3><p>{money(p.price)}</p></div><button className="add-button" onClick={() => addToCart(p)}>Add to cart <Plus size={14}/></button></div></article>)}</div>
+        <div className="product-grid">{visibleProducts.map(p => <article className="product-card" key={p.id}><div className={`product-visual ${p.tone}`}>{p.image_url ? <img src={p.image_url} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <span className="product-art">{p.art}</span>}<small>{p.tag}</small><button className="quick-add" onClick={() => addToCart(p)} aria-label={`Add ${p.name} to cart`}><Plus size={18}/></button></div><div className="product-info"><div><h3>{p.name}</h3><p>{money(p.price)}</p></div><button className="add-button" onClick={() => addToCart(p)}>Add to cart <Plus size={14}/></button></div></article>)}</div>
         {visibleProducts.length === 0 && <p className="empty-cart">No products match this search. Try another name or category.</p>}
       </section>
 
