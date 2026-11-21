@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
+import CategoryPage from './CategoryPage';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Search, ShoppingBag, Heart, UserRound, Menu, ChevronDown, ArrowUpRight, Sparkles, Truck, ShieldCheck, Headset, Plus, Minus, X } from 'lucide-react';
 
 const categories = [
-  { name: 'Personalized Gifts', sub: 'Made just for them', icon: '🎁' },
-  { name: 'Neon Signs', sub: 'Glow your style', icon: '💡' },
-  { name: 'LED Lighting', sub: 'Brighter ideas', icon: '🌙' },
-  { name: 'Wall Décor', sub: 'Transform your space', icon: '✨' },
-  { name: 'Photo Gifts', sub: 'Keep memories close', icon: '🖼️' },
-  { name: 'Custom Apparel', sub: 'Wear your story', icon: '👕' },
+  { name: 'Personalized Gifts', sub: 'Made just for them', icon: '🎁', slug: 'personalized-gifts' },
+  { name: 'Neon Signs', sub: 'Glow your style', icon: '💡', slug: 'neon-signs' },
+  { name: 'LED Lighting', sub: 'Brighter ideas', icon: '🌙', slug: 'led-lighting' },
+  { name: 'Wall Décor', sub: 'Transform your space', icon: '✨', slug: 'wall-decor' },
+  { name: 'Photo Gifts', sub: 'Keep memories close', icon: '🖼️', slug: 'photo-gifts' },
+  { name: 'Custom Apparel', sub: 'Wear your story', icon: '👕', slug: 'custom-apparel' },
 ];
 const products = [
   { id: 1, name: 'Islamic Acrylic Lamp', price: 2999, tag: 'Bestseller', art: '☾', tone: 'amber', category: 'LED Lighting' },
@@ -21,6 +22,13 @@ const products = [
 const money = n => `Rs. ${n.toLocaleString('en-PK')}`;
 
 function App() {
+  const path = window.location.pathname.replace(/\/$/, '');
+  const pageCategory = categories.find(c => c.slug === path.slice(1));
+  if (pageCategory) return <CategoryPage category={pageCategory} />;
+  return <StoreHome />;
+}
+
+function StoreHome() {
   const [cart, setCart] = useState([]);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -79,7 +87,7 @@ function App() {
       <a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a>
       <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Toggle menu"><Menu /></button>
       <nav className={mobileMenu ? 'nav open' : 'nav'}>
-        <a className="active" href="#">Home</a><a href="#shop">Shop <ChevronDown size={13}/></a>
+        <a className="active" href="#">Home</a><div className="nav-dropdown"><a href="/shop">Shop <ChevronDown size={13}/></a><div className="nav-menu"><a href="/shop">All Products</a>{categories.map(c => <a key={c.slug} href={`/${c.slug}`}>{c.name}</a>)}</div></div>
         <a href="#custom">Design Your Own</a><a href="#about">About</a><a href="#contact">Contact</a>
       </nav>
       <div className="header-actions">
@@ -99,8 +107,8 @@ function App() {
         <div className="hero-art"><div className="glow glow-one"/><div className="hero-product product-mug"><span>YOUR<br/>NAME<br/>HERE</span></div><div className="hero-product product-neon"><strong>Good<br/>Vibes</strong></div><div className="hero-product product-frame">♡<small>YOUR MEMORY</small></div><div className="hero-caption">YOUR IDEA. OUR CRAFT.</div></div>
       </section>
 
-      <section className="section category-section"><div className="section-heading"><div><p className="eyebrow">FIND YOUR SOMETHING SPECIAL</p><h2>Shop by <span>Category</span></h2></div><a href="#shop" className="view-link">View all categories <ArrowUpRight size={16}/></a></div>
-        <div className="category-grid">{categories.map(c => <button className={activeCategory === c.name ? 'category-card selected' : 'category-card'} key={c.name} onClick={() => {setActiveCategory(activeCategory === c.name ? 'All' : c.name); document.getElementById('shop').scrollIntoView({behavior:'smooth'});}}><span className="category-icon">{c.icon}</span><b>{c.name}</b><small>{c.sub}</small><ArrowUpRight className="category-arrow" size={17}/></button>)}</div>
+      <section className="section category-section"><div className="section-heading"><div><p className="eyebrow">FIND YOUR SOMETHING SPECIAL</p><h2>Shop by <span>Category</span></h2></div><a href="/shop" className="view-link">View all categories <ArrowUpRight size={16}/></a></div>
+        <div className="category-grid">{categories.map(c => <a className="category-card" key={c.slug} href={`/${c.slug}`}><span className="category-icon">{c.icon}</span><b>{c.name}</b><small>{c.sub}</small><ArrowUpRight className="category-arrow" size={17}/></a>)}</div>
       </section>
 
       <section className="section" id="shop"><div className="section-heading"><div><p className="eyebrow">CUSTOMER FAVOURITES</p><h2>Made to be <span>loved.</span></h2></div><span className="muted">{activeCategory === 'All' ? 'Our popular picks' : <button className="clear-filter" onClick={() => setActiveCategory('All')}>Clear: {activeCategory} ×</button>}</span></div>
@@ -115,7 +123,7 @@ function App() {
       <section className="trust-strip"><div><Truck/><b>Delivery Across Pakistan</b><small>Carefully packed, delivered to you</small></div><div><ShieldCheck/><b>Made With Care</b><small>Quality you can feel</small></div><div><Headset/><b>Personal Support</b><small>We help bring your idea to life</small></div></section>
     </main>
 
-    <footer id="contact"><div className="footer-main"><a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="#shop">Shop</a><a href="#custom">Design Your Own</a><a href="#about">Our Process</a><a href="mailto:hello@rddscustomized.com">Email Us</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span><span>Crafted around your imagination ✦</span></div></footer>
+    <footer id="contact"><div className="footer-main"><a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="/shop">Shop</a><a href="#custom">Design Your Own</a><a href="#about">Our Process</a><a href="mailto:hello@rddscustomized.com">Email Us</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span><span>Crafted around your imagination ✦</span></div></footer>
 
     {toast && <div className="toast">{toast}</div>}
     <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();setCheckoutOpen(true);}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
