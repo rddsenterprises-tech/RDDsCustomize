@@ -8,22 +8,22 @@ const categories = [
   { name: 'Neon Signs', sub: 'Glow your style', icon: '💡', slug: 'neon-signs' },
   { name: 'LED Lighting', sub: 'Brighter ideas', icon: '🌙', slug: 'led-lighting' },
   { name: 'Wall Décor', sub: 'Transform your space', icon: '✨', slug: 'wall-decor' },
-  { name: 'Photo Gifts', sub: 'Keep memories close', icon: '🖼️', slug: 'photo-gifts' },
+  { name: 'Photo Frames', sub: 'Keep memories close', icon: '🖼️', slug: 'photo-gifts' },
   { name: 'Custom Apparel', sub: 'Wear your story', icon: '👕', slug: 'custom-apparel' },
 ];
 const products = [
   { id: 1, name: 'Islamic Acrylic Lamp', price: 2999, tag: 'Bestseller', art: '☾', tone: 'amber', category: 'LED Lighting' },
-  { id: 2, name: 'Personalized Photo Frame', price: 2499, tag: 'Made for memories', art: '♡', tone: 'rose', category: 'Photo Gifts' },
+  { id: 2, name: 'Personalized Photo Frame', price: 2499, tag: 'Made for memories', art: '♡', tone: 'rose', category: 'Photo Frames' },
   { id: 3, name: 'Dream Big Neon Sign', price: 3499, tag: 'Custom neon', art: '✦', tone: 'violet', category: 'Neon Signs' },
   { id: 4, name: 'Custom Name Cushion', price: 1999, tag: 'Personalized', art: '❦', tone: 'cream', category: 'Personalized Gifts' },
-  { id: 5, name: '3D Photo Cube', price: 3199, tag: 'Unique gift', art: '▧', tone: 'gold', category: 'Photo Gifts' },
+  { id: 5, name: '3D Photo Cube', price: 3199, tag: 'Unique gift', art: '▧', tone: 'gold', category: 'Photo Frames' },
   { id: 6, name: 'Wooden Name Sign', price: 1499, tag: 'Made to order', art: 'A', tone: 'wood', category: 'Wall Décor' },
 ];
 const money = n => `Rs. ${n.toLocaleString('en-PK')}`;
 
 function App() {
   const path = window.location.pathname.replace(/\/$/, '');
-  const pageCategory = categories.find(c => c.slug === path.slice(1));
+  const pageCategory = path === '/shop' ? {name:'All Products',sub:'Browse every collection',icon:'🛍️',slug:'shop'} : categories.find(c => c.slug === path.slice(1));
   if (pageCategory) return <CategoryPage category={pageCategory} />;
   return <StoreHome />;
 }
