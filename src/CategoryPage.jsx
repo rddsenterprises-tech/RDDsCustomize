@@ -4,10 +4,10 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 const fallback = [
   { id:'demo-1',name:'Islamic Acrylic Lamp',price:2999,category:'LED Lighting',description:'A warm personalised acrylic lamp for meaningful spaces.',image_url:'' },
-  { id:'demo-2',name:'Personalized Photo Frame',price:2499,category:'Photo Gifts',description:'A thoughtful frame made around your favourite memory.',image_url:'' },
+  { id:'demo-2',name:'Personalized Photo Frame',price:2499,category:'Photo Frames',description:'A thoughtful frame made around your favourite memory.',image_url:'' },
   { id:'demo-3',name:'Dream Big Neon Sign',price:3499,category:'Neon Signs',description:'A custom glow sign designed around your words.',image_url:'' },
   { id:'demo-4',name:'Custom Name Cushion',price:1999,category:'Personalized Gifts',description:'A soft personalised gift made just for them.',image_url:'' },
-  { id:'demo-5',name:'3D Photo Cube',price:3199,category:'Photo Gifts',description:'A keepsake that puts your memories on display.',image_url:'' },
+  { id:'demo-5',name:'3D Photo Cube',price:3199,category:'Photo Frames',description:'A keepsake that puts your memories on display.',image_url:'' },
   { id:'demo-6',name:'Wooden Name Sign',price:1499,category:'Wall Décor',description:'Custom wall décor with a personal touch.',image_url:'' },
 ];
 const money = n => `Rs. ${Number(n).toLocaleString('en-PK')}`;
@@ -24,10 +24,12 @@ export default function CategoryPage({category}) {
     let live=true;
     async function load(){
       if(isSupabaseConfigured && supabase){
-        const {data,error}=await supabase.from('products').select('*').eq('category',category.name).eq('is_active',true).order('created_at',{ascending:false});
+        let request=supabase.from('products').select('*').eq('is_active',true).order('created_at',{ascending:false});
+        if(category.slug!=='shop') request=request.eq('category',category.name);
+        const {data,error}=await request;
         if(!error && live) setProducts(data||[]);
-        else if(live) setProducts(fallback.filter(p=>p.category===category.name));
-      } else if(live) setProducts(fallback.filter(p=>p.category===category.name));
+        else if(live) setProducts(category.slug==='shop'?fallback:fallback.filter(p=>p.category===category.name));
+      } else if(live) setProducts(category.slug==='shop'?fallback:fallback.filter(p=>p.category===category.name));
       if(live) setLoading(false);
     }
     load(); return ()=>{live=false;};
