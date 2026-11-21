@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Search, ShoppingBag, Heart, UserRound, Menu, ChevronDown, ArrowUpRight, Sparkles, Truck, ShieldCheck, Headset, Plus, Minus, X } from 'lucide-react';
 
 const categories = [
@@ -29,6 +30,9 @@ function App() {
   const [customText, setCustomText] = useState('');
   const [customType, setCustomType] = useState('Neon Sign');
   const [toast, setToast] = useState('');
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [customer, setCustomer] = useState({name:'',phone:'',email:'',city:'',address:'',note:'',payment:'cod'});
   const visibleProducts = useMemo(() => products.filter(p =>
     (activeCategory === 'All' || p.category === activeCategory) &&
     p.name.toLowerCase().includes(query.toLowerCase())
@@ -41,6 +45,32 @@ function App() {
   const removeFromCart = index => setCart(old => old.filter((_, i) => i !== index));
   const total = cart.reduce((sum, p) => sum + p.price, 0);
   const openCart = () => document.getElementById('cart-panel')?.showModal();
+  const updateCustomer = (field,value) => setCustomer(old => ({...old,[field]:value}));
+  const placeOrder = async (event) => {
+    event.preventDefault();
+    if (!isSupabaseConfigured || !supabase) {
+      setToast('Order system is being connected. Please try again shortly.');
+      return;
+    }
+    if (!cart.length) return;
+    setPlacingOrder(true);
+    const items = cart.map(item => ({id:item.id,name:item.name,price:item.price,quantity:1}));
+    const paymentMethod = customer.payment;
+    const {data,error} = await supabase.from('orders').insert({
+      customer_name:customer.name.trim(), phone:customer.phone.trim(), email:customer.email.trim() || null,
+      city:customer.city.trim(), delivery_address:customer.address.trim(), customer_note:customer.note.trim() || null,
+      items, subtotal:total, delivery_fee:0, total,
+      payment_method:paymentMethod, payment_status:paymentMethod === 'bank_transfer' ? 'Awaiting verification' : 'Unpaid'
+    }).select('order_number').single();
+    setPlacingOrder(false);
+    if (error) { setToast('Order could not be saved. Please try again.'); return; }
+    const itemLines = cart.map(item => `• ${item.name} — Rs. ${item.price.toLocaleString('en-PK')}`).join('\\n');
+    const paymentLabel = paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Bank Transfer (proof/details to be confirmed)';
+    const message = encodeURIComponent(`New RDDS Customized order: ${data.order_number}\\nName: ${customer.name}\\nPhone: ${customer.phone}\\nCity: ${customer.city}\\nAddress: ${customer.address}\\nPayment: ${paymentLabel}\\nItems:\\n${itemLines}\\nTotal: Rs. ${total.toLocaleString('en-PK')}\\nNote: ${customer.note || 'None'}`);
+    window.open(`https://wa.me/?text=${message}`,'_blank','noopener,noreferrer');
+    setCart([]); setCheckoutOpen(false); document.getElementById('cart-panel')?.close();
+    setToast(`Order ${data.order_number} saved successfully`);
+  };
 
   return <div className="site-shell">
     <div className="announcement">PERSONALIZED WITH LOVE · DELIVERY ACROSS PAKISTAN</div>
@@ -87,8 +117,26 @@ function App() {
     <footer id="contact"><div className="footer-main"><a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="#shop">Shop</a><a href="#custom">Design Your Own</a><a href="#about">Our Process</a><a href="mailto:hello@rddscustomized.com">Email Us</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span><span>Crafted around your imagination ✦</span></div></footer>
 
     {toast && <div className="toast">{toast}</div>}
-    <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Checkout and order confirmation will be connected in the next development phase.</p></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
+    <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();setCheckoutOpen(true);}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
     {customOpen && <div className="modal-backdrop" onClick={() => setCustomOpen(false)}><div className="custom-modal" onClick={e => e.stopPropagation()}><div className="dialog-head"><div><p className="eyebrow">LET'S MAKE IT YOURS</p><h2>Start your custom order</h2></div><button onClick={() => setCustomOpen(false)}><X/></button></div><label>What would you like to customize?<select value={customType} onChange={e => setCustomType(e.target.value)}><option>Neon Sign</option><option>Personalized Gift</option><option>Photo Frame</option><option>LED Décor</option><option>Wall Décor</option></select></label><label>Your name<input value={customName} onChange={e => setCustomName(e.target.value)} placeholder="Enter your name"/></label><label>Tell us your idea<textarea value={customText} onChange={e => setCustomText(e.target.value)} placeholder="Describe your design, colours, size or message..."/></label><button className="btn btn-gold full" onClick={() => {const msg = encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Name: ${customName || 'Not provided'}. Idea: ${customText || 'Please guide me.'}`); window.open(`https://wa.me/?text=${msg}`, '_blank'); setCustomOpen(false);}}>Send design request on WhatsApp <ArrowUpRight size={16}/></button><small className="muted">This opens WhatsApp with your design brief ready to send.</small></div></div>}
+
+    {checkoutOpen && <div className="modal-backdrop" onClick={() => !placingOrder && setCheckoutOpen(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e => e.stopPropagation()}>
+      <div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={() => setCheckoutOpen(false)} disabled={placingOrder}><X/></button></div>
+      <div className="checkout-summary"><span>{cart.length} item(s)</span><strong>{money(total)}</strong></div>
+      <label>Full name<input required value={customer.name} onChange={e=>updateCustomer('name',e.target.value)} placeholder="Your full name"/></label>
+      <label>Mobile / WhatsApp number<input required type="tel" value={customer.phone} onChange={e=>updateCustomer('phone',e.target.value)} placeholder="03XX XXXXXXX"/></label>
+      <label>Email (optional)<input type="email" value={customer.email} onChange={e=>updateCustomer('email',e.target.value)} placeholder="you@example.com"/></label>
+      <label>City<input required value={customer.city} onChange={e=>updateCustomer('city',e.target.value)} placeholder="Your city"/></label>
+      <label>Complete delivery address<textarea required value={customer.address} onChange={e=>updateCustomer('address',e.target.value)} placeholder="House, street, area and nearby landmark"/></label>
+      <label>Order note (optional)<textarea value={customer.note} onChange={e=>updateCustomer('note',e.target.value)} placeholder="Customization details or delivery instructions"/></label>
+      <div className="payment-choice"><p className="eyebrow">PAYMENT METHOD</p>
+        <label className={customer.payment==='cod'?'payment-option selected':'payment-option'}><input type="radio" name="payment" value="cod" checked={customer.payment==='cod'} onChange={e=>updateCustomer('payment',e.target.value)}/><span><b>Cash on Delivery</b><small>Pay when your order arrives</small></span></label>
+        <label className={customer.payment==='bank_transfer'?'payment-option selected':'payment-option'}><input type="radio" name="payment" value="bank_transfer" checked={customer.payment==='bank_transfer'} onChange={e=>updateCustomer('payment',e.target.value)}/><span><b>Online Bank Transfer</b><small>Transfer details will be confirmed by our team</small></span></label>
+      </div>
+      <p className="checkout-disclaimer">Delivery charges, if applicable, will be confirmed by the team before order confirmation.</p>
+      <button className="btn btn-gold full" disabled={placingOrder}>{placingOrder?'Saving order…':'Place order & continue to WhatsApp'} <ArrowUpRight size={16}/></button>
+      {!isSupabaseConfigured && <small className="muted">Order database setup is pending. Checkout will activate after connection.</small>}
+    </form></div>}
   </div>;
 }
 export default App;
