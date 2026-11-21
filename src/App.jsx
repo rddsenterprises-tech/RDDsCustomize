@@ -65,9 +65,9 @@ function App() {
     }).select('order_number').single();
     setPlacingOrder(false);
     if (error) { whatsappWindow?.close(); setToast('Order could not be saved. Please try again.'); return; }
-    const itemLines = cart.map(item => `• ${item.name} — Rs. ${item.price.toLocaleString('en-PK')}`).join('\\n');
+    const itemLines = cart.map(item => `• ${item.name} — Rs. ${item.price.toLocaleString('en-PK')}`).join('\n');
     const paymentLabel = paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Bank Transfer (proof/details to be confirmed)';
-    const message = encodeURIComponent(`New RDDS Customized order: ${data.order_number}\\nName: ${customer.name}\\nPhone: ${customer.phone}\\nCity: ${customer.city}\\nAddress: ${customer.address}\\nPayment: ${paymentLabel}\\nItems:\\n${itemLines}\\nTotal: Rs. ${total.toLocaleString('en-PK')}\\nNote: ${customer.note || 'None'}`);
+    const message = encodeURIComponent(`New RDDS Customized order: ${data.order_number}\nName: ${customer.name}\nPhone: ${customer.phone}\nCity: ${customer.city}\nAddress: ${customer.address}\nPayment: ${paymentLabel}\nItems:\n${itemLines}\nTotal: Rs. ${total.toLocaleString('en-PK')}\nNote: ${customer.note || 'None'}`);
     if (whatsappWindow) whatsappWindow.location.href = `https://wa.me/?text=${message}`;
     setCart([]); setCheckoutOpen(false); document.getElementById('cart-panel')?.close();
     setToast(`Order ${data.order_number} saved successfully`);
