@@ -54,8 +54,7 @@ export default function AdminApp() {
     ['Processing',orders.filter(o=>o.status==='Processing').length,RefreshCw],['COD orders',orders.filter(o=>o.payment_method==='cod').length,Banknote]
   ];
 
-  if (!isSupabaseConfigured) return <main className="admin-wrap"><section className="admin-login"><div className="admin-brand">RDDS <i>Customized</i></div><h1>Admin setup required</h1><p>Supabase project URL aur publishable key Vercel environment variables mein add karne ke baad admin login active hoga.</p><code>VITE_SUPABASE_URL</code><code>VITE_SUPABASE_PUBLISHABLE_KEY</code><a href="/">← Back to store</a></section></main>;
-  const previewMode = !session;
+  const previewMode = !session || !isSupabaseConfigured;
 
   return <main className="admin-wrap"><header className="admin-top"><div><div className="admin-brand">RDDS <i>Customized</i></div><small>STORE CONTROL CENTER</small></div><div className="admin-top-actions"><button onClick={loadOrders}><RefreshCw size={16}/> Refresh</button><button onClick={()=>supabase.auth.signOut()}><LogOut size={16}/> Sign out</button></div></header>
     <section className="admin-content">{previewMode && <div className="pm-message">Exploration mode: login is temporarily bypassed. Data loading and changes remain disabled until admin security is configured.</div>}<div className="admin-title"><div><p className="admin-eyebrow">OVERVIEW</p><h1>Orders</h1><p>Customer orders received from the online store.</p></div><span className="admin-live"><i/> Connected</span></div>
