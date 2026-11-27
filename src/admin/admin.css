@@ -145,3 +145,28 @@
 .report-table td b{color:#26384e}
 .report-table .refresh-button{padding:7px 9px;font-size:9px;white-space:nowrap}
 @media(max-width:650px){.report-filters{margin:0 10px 14px;padding:13px}.report-filters label{flex:1;min-width:130px}.report-filters input,.report-filters select{width:100%;min-width:0}.report-summary{margin:0 10px 14px;gap:7px}.report-summary article{padding:11px}.report-summary strong{font-size:15px}.report-orders{margin:0 10px 25px}}
+
+
+/* Admin order receipt modal (admin entry does not load storefront styles) */
+.receipt-overlay.admin-receipt-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(12,24,40,.68);overflow:auto}
+.admin-receipt-modal{display:block;width:min(620px,100%);max-height:calc(100vh - 48px);overflow-y:auto;margin:auto;padding:30px;background:#fff;color:#172331;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.28);font-family:Arial,sans-serif}
+.admin-receipt-modal .receipt-brand{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d8e7f2;padding-bottom:16px}
+.admin-receipt-modal .receipt-brand>span{font-size:34px;color:#178bd0}
+.admin-receipt-modal .receipt-brand div{display:grid;gap:4px}
+.admin-receipt-modal .receipt-brand b{font-size:18px;letter-spacing:1.5px;color:#102c42}
+.admin-receipt-modal .receipt-brand small{font-size:10px;letter-spacing:2px;color:#648096}
+.admin-receipt-modal .receipt-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;padding:13px;background:#f2f7fa;border-radius:7px}
+.admin-receipt-modal .receipt-meta div{display:grid;gap:5px}
+.admin-receipt-modal .receipt-meta small{font-size:10px;color:#607789}
+.admin-receipt-modal .receipt-meta b{font-size:13px;color:#15364e}
+.admin-receipt-modal h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#547187;margin:18px 0 8px}
+.admin-receipt-modal p{font-size:12px;line-height:1.7;color:#263b4a;overflow-wrap:anywhere}
+.admin-receipt-modal .receipt-items>div,.admin-receipt-modal .receipt-totals>div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e7edf1;font-size:12px;color:#263b4a}
+.admin-receipt-modal .receipt-items b,.admin-receipt-modal .receipt-totals b{color:#132f43;white-space:nowrap}
+.admin-receipt-modal .receipt-totals{margin-top:12px}
+.admin-receipt-modal .receipt-grand{border-top:2px solid #183d56;font-size:15px!important;font-weight:800}
+.admin-receipt-modal .receipt-grand b{color:#087fc1;font-size:17px}
+.admin-receipt-modal .receipt-payment{margin-top:15px;padding:12px;background:#eef6fb;border-left:3px solid #168bd0;color:#234b64;font-size:11px;line-height:1.7}
+.admin-receipt-modal .receipt-actions{display:flex;gap:10px;margin-top:20px}
+.admin-receipt-modal .receipt-actions button{flex:1;justify-content:center;cursor:pointer;border:0;border-radius:8px;padding:12px;font-weight:700}
+@media(max-width:520px){.receipt-overlay.admin-receipt-overlay{padding:10px}.admin-receipt-modal{max-height:calc(100vh - 20px);padding:20px}.admin-receipt-modal .receipt-meta{grid-template-columns:1fr}.admin-receipt-modal .receipt-actions{flex-direction:column}}
