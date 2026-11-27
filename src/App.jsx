@@ -59,26 +59,25 @@ function StoreHome() {
   const placeOrder = async (event) => {
     event.preventDefault();
     if (!isSupabaseConfigured || !supabase) {
-      setToast('Order system is being connected. Please try again shortly.');
+      setToast('Order system is not connected. Please try again later.');
       return;
     }
     if (!cart.length) return;
     setPlacingOrder(true);
-    const items = cart.map(item => ({id:item.id,name:item.name,price:item.price,quantity:1}));
-    const paymentMethod = customer.payment;
+    const items = cart.map(item => ({id:item.id,name:item.name,price:Number(item.price),quantity:1}));
+    const paymentMethod = 'cod';
     const {data,error} = await supabase.from('orders').insert({
       customer_name:customer.name.trim(), phone:customer.phone.trim(), email:customer.email.trim() || null,
       city:customer.city.trim(), delivery_address:customer.address.trim(), customer_note:customer.note.trim() || null,
       items, subtotal:total, delivery_fee:0, total,
-      payment_method:paymentMethod, payment_status:paymentMethod === 'bank_transfer' ? 'Awaiting verification' : 'Unpaid'
+      payment_method:paymentMethod, payment_status:'Unpaid'
     }).select('order_number').single();
     setPlacingOrder(false);
-    if (error) { whatsappWindow?.close(); setToast('Order could not be saved. Please try again.'); return; }
-    const itemLines = cart.map(item => `• ${item.name} — Rs. ${item.price.toLocaleString('en-PK')}`).join('\n');
-    const paymentLabel = paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Bank Transfer (proof/details to be confirmed)';
-    const message = encodeURIComponent(`New RDDS Customized order: ${data.order_number}\nName: ${customer.name}\nPhone: ${customer.phone}\nCity: ${customer.city}\nAddress: ${customer.address}\nPayment: ${paymentLabel}\nItems:\n${itemLines}\nTotal: Rs. ${total.toLocaleString('en-PK')}\nNote: ${customer.note || 'None'}`);
-    if (whatsappWindow) whatsappWindow.location.href = `https://wa.me/?text=${message}`;
-    setCart([]); setCheckoutOpen(false); document.getElementById('cart-panel')?.close();
+    if (error) { setToast('Order could not be saved. Please try again.'); return; }
+    setCompletedOrder({order_number:data.order_number,created_at:new Date().toISOString(),customer:{...customer},items:cart.map(item=>({...item,quantity:1})),subtotal:total,delivery_fee:0,total,payment_method:paymentMethod});
+    setCart([]);
+    setCheckoutOpen(false);
+    document.getElementById('cart-panel')?.close();
     setToast(`Order ${data.order_number} saved successfully`);
   };
 
