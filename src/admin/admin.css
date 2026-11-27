@@ -231,3 +231,38 @@
 .pm-table-product small,.report-table td small{color:#52647a}
 .order-items span{color:#40536a}
 .admin-empty{color:#52647a}
+
+
+/* Admin live customer support inbox */
+.admin-live-chats{padding-bottom:35px}
+.chat-admin-layout{margin:0 4.2% 35px;display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.55fr);gap:15px;min-height:560px}
+.chat-inbox,.chat-thread{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden;min-width:0;box-shadow:0 3px 14px #1b3c6207}
+.chat-inbox-head{display:flex;align-items:center;justify-content:space-between;padding:17px;border-bottom:1px solid var(--line);color:#1677ed}
+.chat-inbox-head>div{display:grid;gap:4px}.chat-inbox-head b{font-size:13px;color:#20344b}.chat-inbox-head small{font-size:10px;color:#52647a}
+.chat-inbox-empty,.chat-thread-empty{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:22px;color:#52647a;font-size:11px}
+.chat-inbox-empty svg,.chat-thread-empty svg{color:#168bd0}.chat-inbox-empty b,.chat-thread-empty b{font-size:13px;color:#26394e}.chat-inbox-empty span,.chat-thread-empty span{max-width:230px;line-height:1.5}
+.chat-conversation{width:100%;display:flex;align-items:center;gap:10px;padding:13px;border:0;border-bottom:1px solid #edf1f6;background:#fff;text-align:left;cursor:pointer}
+.chat-conversation:hover,.chat-conversation.active{background:#f0f7ff}
+.chat-person-icon{width:36px;height:36px;flex:none;border-radius:50%;display:grid;place-items:center;background:#eaf3ff;color:#1677ed}
+.chat-conversation-copy{min-width:0;flex:1;display:grid;gap:4px}
+.chat-conversation-copy b{font-size:11px;color:#26394e}
+.chat-conversation-copy small{font-size:10px;color:#52647a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-conversation-copy em{font-size:9px;color:#718198;font-style:normal}
+.chat-state{display:grid;place-items:center}.chat-state.open{color:#14a36c}.chat-state.closed{color:#8a99ad}
+.chat-thread{display:flex;flex-direction:column;min-height:560px}
+.chat-thread-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.chat-thread-head>div:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}
+.chat-thread-head b{font-size:12px;color:#26394e}.chat-thread-head small{font-size:9px;color:#52647a;overflow-wrap:anywhere}
+.chat-thread-head button{font-size:10px;padding:8px 10px}
+.chat-thread-messages{flex:1;min-height:330px;max-height:520px;overflow:auto;padding:18px;background:#f7fafd;display:flex;flex-direction:column;gap:12px}
+.chat-admin-message{max-width:78%;display:grid;gap:5px;padding:10px 12px;border-radius:11px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.chat-admin-message.from-customer{align-self:flex-start;background:#fff;border:1px solid #e2eaf2;color:#26394e;border-bottom-left-radius:3px}
+.chat-admin-message.from-admin{align-self:flex-end;background:#1677ed;color:#fff;border-bottom-right-radius:3px}
+.chat-admin-message small{font-size:9px;opacity:.72}
+.chat-admin-compose{display:flex;gap:9px;padding:12px;border-top:1px solid var(--line)}
+.chat-admin-compose input{flex:1;min-width:0;border:1px solid #dce5f0;border-radius:9px;padding:11px;font-size:12px;color:#26394e;outline:0}
+.chat-admin-compose input:focus{border-color:#1677ed}
+.chat-admin-compose button{display:flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:9px;padding:10px 15px;background:#1677ed;color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+.chat-admin-compose button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:850px){.chat-admin-layout{grid-template-columns:1fr}.chat-inbox{max-height:320px;overflow:auto}.chat-thread{min-height:480px}}
+@media(max-width:650px){.chat-admin-layout{margin:0 10px 25px;gap:10px}.chat-thread-head{padding:11px}.chat-thread-head button{padding:7px}.chat-thread-messages{min-height:280px;padding:12px}.chat-admin-message{max-width:90%}.chat-admin-compose{padding:9px}.chat-admin-compose button{padding:9px 11px}}
