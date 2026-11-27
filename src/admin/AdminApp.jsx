@@ -16,6 +16,7 @@ export default function AdminApp() {
   const [filter, setFilter] = useState('All');
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('orders');
+  const [receiptOrder, setReceiptOrder] = useState(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -117,7 +118,7 @@ export default function AdminApp() {
             <div className="order-items">{(order.items||[]).map((item,i)=><span key={i}>{item.name} × {item.quantity}</span>)}</div>
             <div className="order-details"><span><Banknote size={15}/> {order.payment_method==='cod'?'Cash on Delivery':'Online payment'} · {order.payment_status}</span><span><Truck size={15}/> {order.delivery_address}</span></div>
             {order.customer_note && <p className="customer-note">Customer note: {order.customer_note}</p>}
-            <div className="order-controls"><label>Order status<select value={order.status} onChange={e=>updateStatus(order.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><label>Payment status<select value={order.payment_status} onChange={e=>updatePaymentStatus(order.id,e.target.value)}><option>Unpaid</option><option>Awaiting verification</option><option>Paid</option><option>Refunded</option></select></label></div>
+            <div className="order-controls"><button className="refresh-button" onClick={()=>setReceiptOrder(order)}>View / Print receipt</button><label>Order status<select value={order.status} onChange={e=>updateStatus(order.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><label>Payment status<select value={order.payment_status} onChange={e=>updatePaymentStatus(order.id,e.target.value)}><option>Unpaid</option><option>Awaiting verification</option><option>Paid</option><option>Refunded</option></select></label></div>
           </article>)}</div>}
         </section>
       </> : activeTab==='products' ? <div className="products-admin-page"><div className="page-heading"><div><p className="admin-eyebrow">STORE CATALOGUE</p><h1>Product management</h1><p>Add, edit, publish or hide products. Stock tracking is not included.</p></div></div><ProductManager /></div> : <div className="page-heading payment-page"><div><p className="admin-eyebrow">CHECKOUT CONFIGURATION</p><h1>Payment settings</h1><p>Manage the payment methods customers can use at checkout.</p></div>
@@ -126,5 +127,7 @@ export default function AdminApp() {
         <div className="payment-info"><Settings size={18}/><p>For now, Cash on Delivery is the available checkout method. Online payment gateway setup will be completed separately when your provider and account details are ready.</p></div>
       </div>}
     </section>
+
+    {receiptOrder && <div className="receipt-overlay admin-receipt-overlay"><section className="receipt-modal admin-receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT · ADMIN COPY</small></div></div><div className="receipt-meta"><div><small>Order number</small><b>{receiptOrder.order_number}</b></div><div><small>Order date</small><b>{new Date(receiptOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{receiptOrder.customer_name}<br/>{receiptOrder.phone}<br/>{receiptOrder.email||''}<br/>{receiptOrder.city}<br/>{receiptOrder.delivery_address}</p><h3>Order items</h3><div className="receipt-items">{(receiptOrder.items||[]).map((item,i)=><div key={i}><span>{item.name} × {item.quantity||1}</span><b>{money(Number(item.price)*(item.quantity||1))}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(receiptOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(receiptOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(receiptOrder.total)}</b></div></div><div className="receipt-payment">Payment: {receiptOrder.payment_method==='cod'?'Cash on Delivery':'Online payment'} · {receiptOrder.payment_status}<br/>Order status: {receiptOrder.status}</div>{receiptOrder.customer_note&&<p>Customer note: {receiptOrder.customer_note}</p>}<div className="receipt-actions"><button className="admin-primary" onClick={()=>window.print()}>Print receipt</button><button className="refresh-button" onClick={()=>setReceiptOrder(null)}>Close</button></div></section></div>}
   </main>;
 }
