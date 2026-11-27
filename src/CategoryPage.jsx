@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight, ShoppingBag, Plus, Minus, X } from 'lucide-rea
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import ProductDetail from './ProductDetail';
 import CustomerAccount from './CustomerAccount';
+import LiveChat from './LiveChat';
 import { UserRound } from 'lucide-react';
 
 const fallback = [];
@@ -92,5 +93,6 @@ export default function CategoryPage({category}) {
       <label>Full name<input required value={customer.name} onChange={e=>setCustomer({...customer,name:e.target.value})}/></label><label>Mobile / WhatsApp<input required type="tel" value={customer.phone} onChange={e=>setCustomer({...customer,phone:e.target.value})}/></label><label>Email<input type="email" value={customer.email} onChange={e=>setCustomer({...customer,email:e.target.value})}/></label><label>City<input required value={customer.city} onChange={e=>setCustomer({...customer,city:e.target.value})}/></label><label>Delivery address<textarea required value={customer.address} onChange={e=>setCustomer({...customer,address:e.target.value})}/></label><label>Order note (optional)<textarea value={customer.note} onChange={e=>setCustomer({...customer,note:e.target.value})}/></label>
       <p className="checkout-disclaimer">Karachi delivery: Rs. 300 · Outside Karachi: Rs. 500. Total includes delivery charges.</p><div className="payment-choice"><p className="eyebrow">PAYMENT METHOD</p><label className="payment-option"><input type="radio" name="payment" checked={customer.payment==='cod'} onChange={()=>setCustomer({...customer,payment:'cod'})}/><span><b>Cash on Delivery</b></span></label><p className="checkout-disclaimer">Online payment gateway will be available soon. Cash on Delivery is currently the only active method.</p></div>
       <button className="btn btn-gold full" disabled={saving}>{saving?'Saving order…':'Place order & get receipt'}</button></form></div>}
+    <LiveChat />
   </div>;
 }
