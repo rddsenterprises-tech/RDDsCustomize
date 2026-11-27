@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import CategoryPage from './CategoryPage';
 import ProductDetail from './ProductDetail';
+import CustomerAccount from './CustomerAccount';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Search, ShoppingBag, Heart, UserRound, Menu, ChevronDown, ArrowUpRight, Sparkles, Truck, ShieldCheck, Headset, Plus, Minus, X } from 'lucide-react';
 
@@ -26,6 +27,14 @@ function App() {
 function StoreHome() {
   const currentPage = window.location.pathname.replace(/\/$/, '') || '/';
   const [cart, setCart] = useState([]);
+  const [authSession, setAuthSession] = useState(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({data}) => setAuthSession(data.session));
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event, session) => setAuthSession(session));
+    return () => subscription.unsubscribe();
+  }, []);
   const [selectedProduct,setSelectedProduct] = useState(null);
   const [catalogProducts, setCatalogProducts] = useState(products);
   useEffect(() => { if (!supabase) return; supabase.from('products').select('*').eq('is_active', true).order('created_at', {ascending:false}).then(({data,error}) => { if (!error) setCatalogProducts((data || []).map(p => ({...p, art:'✧', tone:'blue'}))); }); }, []);
@@ -58,6 +67,14 @@ function StoreHome() {
   const total = cart.reduce((sum, p) => sum + Number(p.price), 0);
   const openCart = () => document.getElementById('cart-panel')?.showModal();
   const updateCustomer = (field,value) => setCustomer(old => ({...old,[field]:value}));
+  useEffect(() => {
+    if (authSession?.user) setCustomer(old => ({...old, name: old.name || authSession.user.user_metadata?.full_name || '', email: old.email || authSession.user.email || ''}));
+  }, [authSession?.user?.id]);
+  const startCheckout = () => {
+    if (!authSession?.user) { setAccountOpen(true); setToast('Please sign in or create an account before checkout.'); return; }
+    if (!cart.length) return;
+    setCheckoutOpen(true);
+  };
   const placeOrder = async (event) => {
     event.preventDefault();
     if (!isSupabaseConfigured || !supabase) {
@@ -69,7 +86,7 @@ function StoreHome() {
     const items = cart.map(item => ({id:item.id,name:item.name,price:Number(item.price),quantity:1}));
     const paymentMethod = 'cod';
     const {data,error} = await supabase.from('orders').insert({
-      customer_name:customer.name.trim(), phone:customer.phone.trim(), email:customer.email.trim() || null,
+      user_id:authSession.user.id, customer_name:customer.name.trim(), phone:customer.phone.trim(), email:customer.email.trim() || authSession.user.email || null,
       city:customer.city.trim(), delivery_address:customer.address.trim(), customer_note:customer.note.trim() || null,
       items, subtotal:total, delivery_fee:0, total,
       payment_method:paymentMethod, payment_status:'Unpaid'
@@ -94,13 +111,13 @@ function StoreHome() {
       </nav>
       <div className="header-actions">
         <label className="search"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search products..." /><Search size={18}/></label>
-        <button aria-label="Account"><UserRound/></button><button aria-label="Wishlist"><Heart/></button>
+        <button aria-label="Customer account" onClick={()=>setAccountOpen(true)}><UserRound/></button><button aria-label="Wishlist"><Heart/></button>
         <button className="cart-button" onClick={openCart} aria-label="Open cart"><ShoppingBag/><span>{cart.length}</span></button>
       </div>
     </header>
 
     <main>
-      {selectedProduct ? <ProductDetail product={selectedProduct} onBack={()=>setSelectedProduct(null)} cart={cart} onAdd={addToCart} onRemove={removeFromCart} total={total} money={money} onCheckout={()=>{setSelectedProduct(null);setCheckoutOpen(true);}}/> : <>
+      {selectedProduct ? <ProductDetail product={selectedProduct} onBack={()=>setSelectedProduct(null)} cart={cart} onAdd={addToCart} onRemove={removeFromCart} total={total} money={money} onCheckout={()=>{setSelectedProduct(null);startCheckout();}}/> : <>
       {(currentPage === '/' || currentPage === '/design-your-own') && <section className="hero">
         <div className="hero-copy"><p className="eyebrow">THE ART OF PERSONALIZATION</p><h1>Make every gift<br/><span>unforgettable.</span></h1>
           <p className="hero-desc">Personalized gifts, custom neon signs and décor made around your ideas.</p>
@@ -140,7 +157,8 @@ function StoreHome() {
     {currentPage !== '/contact' && <footer id="contact"><div className="footer-main"><a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="/shop">Shop</a><a href="#hero-customizer">Design Your Own</a><a href="#about">Our Process</a><a href="mailto:hello@rddscustomized.com">Email Us</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span><span>Crafted around your imagination ✦</span></div></footer>}
 
     {toast && <div className="toast">{toast}</div>}
-    <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();setCheckoutOpen(true);}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
+    <CustomerAccount open={accountOpen} onClose={()=>setAccountOpen(false)} onSessionChange={setAuthSession}/>
+    <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();startCheckout();}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
 
     {completedOrder && <div className="modal-backdrop receipt-overlay"><section className="custom-modal receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT</small></div></div><div className="receipt-success">✓ Order placed successfully</div><div className="receipt-meta"><div><small>Order number</small><b>{completedOrder.order_number}</b></div><div><small>Date</small><b>{new Date(completedOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{completedOrder.customer.name}<br/>{completedOrder.customer.phone}<br/>{completedOrder.customer.email}<br/>{completedOrder.customer.city}<br/>{completedOrder.customer.address}</p><h3>Order items</h3><div className="receipt-items">{completedOrder.items.map((item,i)=><div key={i}><span>{item.name} × {item.quantity}</span><b>{money(item.price*item.quantity)}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(completedOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(completedOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(completedOrder.total)}</b></div></div><div className="receipt-payment">Payment: Cash on Delivery · Payment status: Unpaid</div>{completedOrder.customer.note&&<p>Note: {completedOrder.customer.note}</p>}<div className="receipt-actions"><button className="btn btn-blue" onClick={()=>window.print()}>Print receipt</button><button className="btn btn-gold" onClick={()=>setCompletedOrder(null)}>Continue shopping</button></div><small className="receipt-thanks">Thank you for shopping with RDDS Customized.</small></section></div>}
     {checkoutOpen && <div className="modal-backdrop" onClick={() => !placingOrder && setCheckoutOpen(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e => e.stopPropagation()}>
