@@ -1,7 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Send, Headset, LoaderCircle } from 'lucide-react';
-import { supabase } from './lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import './LiveChat.css';
+
+// Keep customer chat auth separate from the site's/admin login session.
+const chatUrl = import.meta.env.VITE_SUPABASE_URL;
+const chatKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const chatClient = chatUrl && chatKey ? createClient(chatUrl, chatKey, {
+  auth: {
+    storageKey: 'rdds_customer_chat_auth',
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+}) : null;
 
 export default function LiveChat() {
   const [open,setOpen]=useState(false);
@@ -16,14 +28,14 @@ export default function LiveChat() {
   const endRef=useRef(null);
 
   useEffect(()=>{
-    if(!supabase){setStatus('Chat is temporarily unavailable.');return;}
+    if(!chatClient){setStatus('Chat is temporarily unavailable.');return;}
     let alive=true;
     const init=async()=>{
-      const {data:{session:current}}=await supabase.auth.getSession();
+      const {data:{session:current}}=await chatClient.auth.getSession();
       let active=current;
       if(!active){
-        const {data,error}=await supabase.auth.signInAnonymously();
-        if(error){if(alive)setStatus('Support chat is not enabled yet. Please contact us by email.');return;}
+        const {data,error}=await chatClient.auth.signInAnonymously();
+        if(error){if(alive)setStatus('Guest chat login failed: '+error.message);return;}
         active=data.session;
       }
       if(!alive)return;
@@ -31,7 +43,7 @@ export default function LiveChat() {
       setName(active.user.user_metadata?.full_name||'');
       setEmail(active.user.email||'');
       if(active.user.app_metadata?.app_role==='admin'){setStatus('Open the admin panel to manage customer chats.');return;}
-      const {data,error}=await supabase.from('chat_conversations').select('*').eq('customer_id',active.user.id).eq('status','open').order('last_message_at',{ascending:false}).limit(1).maybeSingle();
+      const {data,error}=await chatClient.from('chat_conversations').select('*').eq('customer_id',active.user.id).eq('status','open').order('last_message_at',{ascending:false}).limit(1).maybeSingle();
       if(!alive)return;
       if(error){setStatus('Could not load support chat.');return;}
       if(data){setConversation(data);setStatus('We usually reply as soon as possible.');}
@@ -42,18 +54,18 @@ export default function LiveChat() {
   },[]);
 
   useEffect(()=>{
-    if(!conversation||!session||!supabase)return;
+    if(!conversation||!session||!chatClient)return;
     let alive=true;
     const load=async()=>{
-      const {data,error}=await supabase.from('chat_messages').select('*').eq('conversation_id',conversation.id).order('created_at',{ascending:true});
+      const {data,error}=await chatClient.from('chat_messages').select('*').eq('conversation_id',conversation.id).order('created_at',{ascending:true});
       if(alive&&!error)setMessages(data||[]);
     };
     load();
-    const channel=supabase.channel('customer-chat-'+conversation.id)
+    const channel=chatClient.channel('customer-chat-'+conversation.id)
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:'conversation_id=eq.'+conversation.id},payload=>{
         setMessages(old=>old.some(m=>m.id===payload.new.id)?old:[...old,payload.new]);
       }).subscribe();
-    return ()=>{alive=false;supabase.removeChannel(channel);};
+    return ()=>{alive=false;chatClient.removeChannel(channel);};
   },[conversation?.id,session?.user?.id]);
 
   useEffect(()=>{endRef.current?.scrollIntoView({behavior:'smooth'});},[messages,open]);
@@ -61,29 +73,30 @@ export default function LiveChat() {
   const send=async e=>{
     e?.preventDefault();
     const message=draft.trim();
-    if(!message||!supabase||!session||busy)return;
+    if(!message||!chatClient||!session||busy)return;
     setBusy(true);
     let activeConversation=conversation;
     if(!activeConversation){
-      const {data,error}=await supabase.from('chat_conversations').insert({
+      const {data,error}=await chatClient.from('chat_conversations').insert({
         customer_id:session.user.id,
         customer_name:name.trim()||'Website visitor',
         customer_email:email.trim()||null,
         last_message:message
       }).select('*').single();
-      if(error){setStatus('Message could not be sent. Please try again.');setBusy(false);return;}
+      if(error){setStatus('Could not start chat: '+error.message);setBusy(false);return;}
       activeConversation=data;
       setConversation(data);
     } else {
-      await supabase.from('chat_conversations').update({last_message:message,last_message_at:new Date().toISOString()}).eq('id',activeConversation.id);
+      const {error:updateError}=await chatClient.from('chat_conversations').update({last_message:message,last_message_at:new Date().toISOString()}).eq('id',activeConversation.id);
+      if(updateError){setStatus('Could not update chat: '+updateError.message);setBusy(false);return;}
     }
-    const {error}=await supabase.from('chat_messages').insert({
+    const {error}=await chatClient.from('chat_messages').insert({
       conversation_id:activeConversation.id,
       sender_id:session.user.id,
       sender_role:'customer',
       message
     });
-    if(error){setStatus('Message could not be sent. Please try again.');}
+    if(error){setStatus('Message could not be sent: '+error.message);}
     else {setDraft('');setStatus('Message sent. Our team will reply here live.');}
     setBusy(false);
   };
