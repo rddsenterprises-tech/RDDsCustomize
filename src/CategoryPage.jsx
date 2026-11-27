@@ -32,21 +32,20 @@ export default function CategoryPage({category}) {
   const add=p=>setCart(old=>[...old,p]);
   const placeOrder=async e=>{
     e.preventDefault();
-    if(!supabase){setNotice('Order database is not connected yet. Please try again later.');return;}
+    if(!supabase){setNotice('Order database is not connected. Please try again later.');return;}
     setSaving(true);
     const items=cart.map(p=>({id:p.id,name:p.name,price:Number(p.price),quantity:1}));
     const {data,error}=await supabase.from('orders').insert({
       customer_name:customer.name.trim(),phone:customer.phone.trim(),city:customer.city.trim(),
       delivery_address:customer.address.trim(),customer_note:customer.note.trim()||null,items,
-      subtotal:total,delivery_fee:0,total,payment_method:customer.payment,
-      payment_status:customer.payment==='cod'?'Unpaid':'Awaiting verification'
+      subtotal:total,delivery_fee:0,total,payment_method:'cod',payment_status:'Unpaid'
     }).select('order_number').single();
     setSaving(false);
-    if(error){tab?.close();setNotice('Order save nahi hua. Please dobara try karein.');return;}
-    const lines=cart.map(p=>`• ${p.name} — Rs. ${Number(p.price).toLocaleString('en-PK')}`).join('\n');
-    const message=encodeURIComponent(`RDDS Customized order ${data.order_number}\nName: ${customer.name}\nPhone: ${customer.phone}\nCity: ${customer.city}\nAddress: ${customer.address}\nPayment: ${customer.payment==='cod'?'Cash on Delivery':'Online Bank Transfer'}\nItems:\n${lines}\nTotal: Rs. ${total}\nNote: ${customer.note||'None'}`);
-    if(tab) tab.location.href=`https://wa.me/?text=${message}`;
-    setCart([]);setCheckout(false);setNotice(`Order ${data.order_number} saved successfully.`);
+    if(error){setNotice('Order save nahi hua. Please dobara try karein.');return;}
+    setCompletedOrder({order_number:data.order_number,created_at:new Date().toISOString(),customer:{...customer},items:cart.map(p=>({...p,quantity:1})),subtotal:total,delivery_fee:0,total});
+    setCart([]);
+    setCheckout(false);
+    setNotice(`Order ${data.order_number} saved successfully.`);
   };
   return <div className="site-shell category-page">
     <div className="announcement">PERSONALIZED WITH LOVE · DELIVERY ACROSS PAKISTAN</div>
