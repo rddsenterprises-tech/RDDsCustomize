@@ -65,6 +65,8 @@ function StoreHome() {
   };
   const removeFromCart = index => setCart(old => old.filter((_, i) => i !== index));
   const total = cart.reduce((sum, p) => sum + Number(p.price), 0);
+  const deliveryFee = customer.city.trim().toLowerCase() === 'karachi' ? 300 : 500;
+  const grandTotal = total + deliveryFee;
   const openCart = () => document.getElementById('cart-panel')?.showModal();
   const updateCustomer = (field,value) => setCustomer(old => ({...old,[field]:value}));
   useEffect(() => {
@@ -88,12 +90,12 @@ function StoreHome() {
     const {data,error} = await supabase.from('orders').insert({
       user_id:authSession.user.id, customer_name:customer.name.trim(), phone:customer.phone.trim(), email:customer.email.trim() || authSession.user.email || null,
       city:customer.city.trim(), delivery_address:customer.address.trim(), customer_note:customer.note.trim() || null,
-      items, subtotal:total, delivery_fee:0, total,
+      items, subtotal:total, delivery_fee:deliveryFee, total:grandTotal,
       payment_method:paymentMethod, payment_status:'Unpaid'
     }).select('order_number').single();
     setPlacingOrder(false);
     if (error) { setToast('Order could not be saved. Please try again.'); return; }
-    setCompletedOrder({order_number:data.order_number,created_at:new Date().toISOString(),customer:{...customer},items:cart.map(item=>({...item,quantity:1})),subtotal:total,delivery_fee:0,total,payment_method:paymentMethod});
+    setCompletedOrder({order_number:data.order_number,created_at:new Date().toISOString(),customer:{...customer},items:cart.map(item=>({...item,quantity:1})),subtotal:total,delivery_fee:deliveryFee,total:grandTotal,payment_method:paymentMethod});
     setCart([]);
     setCheckoutOpen(false);
     document.getElementById('cart-panel')?.close();
@@ -163,7 +165,7 @@ function StoreHome() {
     {completedOrder && <div className="modal-backdrop receipt-overlay"><section className="custom-modal receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT</small></div></div><div className="receipt-success">✓ Order placed successfully</div><div className="receipt-meta"><div><small>Order number</small><b>{completedOrder.order_number}</b></div><div><small>Date</small><b>{new Date(completedOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{completedOrder.customer.name}<br/>{completedOrder.customer.phone}<br/>{completedOrder.customer.email}<br/>{completedOrder.customer.city}<br/>{completedOrder.customer.address}</p><h3>Order items</h3><div className="receipt-items">{completedOrder.items.map((item,i)=><div key={i}><span>{item.name} × {item.quantity}</span><b>{money(item.price*item.quantity)}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(completedOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(completedOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(completedOrder.total)}</b></div></div><div className="receipt-payment">Payment: Cash on Delivery · Payment status: Unpaid</div>{completedOrder.customer.note&&<p>Note: {completedOrder.customer.note}</p>}<div className="receipt-actions"><button className="btn btn-blue" onClick={()=>window.print()}>Print receipt</button><button className="btn btn-gold" onClick={()=>setCompletedOrder(null)}>Continue shopping</button></div><small className="receipt-thanks">Thank you for shopping with RDDS Customized.</small></section></div>}
     {checkoutOpen && <div className="modal-backdrop" onClick={() => !placingOrder && setCheckoutOpen(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e => e.stopPropagation()}>
       <div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={() => setCheckoutOpen(false)} disabled={placingOrder}><X/></button></div>
-      <div className="checkout-summary"><span>{cart.length} item(s)</span><strong>{money(total)}</strong></div>
+      <div className="checkout-summary"><span>{cart.length} item(s) · Subtotal {money(total)} · Delivery {money(deliveryFee)}</span><strong>{money(grandTotal)}</strong></div>
       <label>Full name<input required value={customer.name} onChange={e=>updateCustomer('name',e.target.value)} placeholder="Your full name"/></label>
       <label>Mobile / WhatsApp number<input required type="tel" value={customer.phone} onChange={e=>updateCustomer('phone',e.target.value)} placeholder="03XX XXXXXXX"/></label>
       <label>Email (optional)<input type="email" value={customer.email} onChange={e=>updateCustomer('email',e.target.value)} placeholder="you@example.com"/></label>
@@ -174,7 +176,7 @@ function StoreHome() {
         <label className={customer.payment==='cod'?'payment-option selected':'payment-option'}><input type="radio" name="payment" value="cod" checked={customer.payment==='cod'} onChange={e=>updateCustomer('payment',e.target.value)}/><span><b>Cash on Delivery</b><small>Pay when your order arrives</small></span></label>
         <p className="checkout-disclaimer">Online payment gateway will be available soon. For now, Cash on Delivery is the only active payment method.</p>
       </div>
-      <p className="checkout-disclaimer">Delivery charges, if applicable, will be confirmed by the team before order confirmation.</p>
+      <p className="checkout-disclaimer">Karachi delivery: Rs. 300 · Outside Karachi: Rs. 500. Total includes delivery charges.</p>
       <button className="btn btn-gold full" disabled={placingOrder}>{placingOrder?'Saving order…':'Place order & get receipt'} <ArrowUpRight size={16}/></button>
       {!isSupabaseConfigured && <small className="muted">Order database setup is pending. Checkout will activate after connection.</small>}
     </form></div>}
