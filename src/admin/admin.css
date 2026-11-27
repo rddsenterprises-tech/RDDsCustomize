@@ -125,3 +125,23 @@
 .pm-form-footer .admin-primary{min-width:160px;padding:11px 15px;font-size:11px}
 .pm-form-footer>button:not(.admin-primary){border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 16px;color:#526278;font-size:11px}
 @media(max-width:650px){.pm-heading{align-items:flex-start;flex-direction:column}.pm-head-actions{width:100%}.pm-head-actions .admin-primary{flex:1;justify-content:center}.pm-form-page{padding:15px}.pm-form-grid{grid-template-columns:1fr}.pm-form-grid .pm-description-field{grid-column:auto}.pm-row-actions{gap:4px}.pm-row-actions button{padding:6px}.pm-form-footer .admin-primary{flex:1}}
+
+
+/* Received orders reporting */
+.reports-page{padding-bottom:40px}
+.report-filters{margin:0 4.2% 16px;padding:17px;background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.report-filters label{display:grid;gap:6px;font-size:10px;font-weight:700;color:#718198}
+.report-filters input,.report-filters select{min-width:145px;border:1px solid #dce5f0;background:#fbfdff;color:#34445b;border-radius:8px;padding:10px;font-size:11px;outline:0}
+.report-summary{margin:0 4.2% 16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.report-summary article{background:#fff;border:1px solid var(--line);border-radius:11px;padding:16px;display:grid;gap:7px}
+.report-summary small{font-size:10px;color:#8190a4}.report-summary strong{font-size:20px;color:#17263c}
+.report-orders{margin-top:0}
+.report-table-wrap{overflow-x:auto}
+.report-table{width:100%;border-collapse:collapse;min-width:720px;text-align:left}
+.report-table th{background:#f7faff;color:#8090a5;font-size:9px;text-transform:uppercase;letter-spacing:.7px;padding:13px 15px}
+.report-table td{padding:13px 15px;border-top:1px solid #edf1f6;color:#53647a;font-size:10px;white-space:nowrap}
+.report-table td:first-child,.report-table td:nth-child(2){display:table-cell}
+.report-table td small{display:block;color:#91a0b2;font-size:9px;margin-top:4px}
+.report-table td b{color:#26384e}
+.report-table .refresh-button{padding:7px 9px;font-size:9px;white-space:nowrap}
+@media(max-width:650px){.report-filters{margin:0 10px 14px;padding:13px}.report-filters label{flex:1;min-width:130px}.report-filters input,.report-filters select{width:100%;min-width:0}.report-summary{margin:0 10px 14px;gap:7px}.report-summary article{padding:11px}.report-summary strong{font-size:15px}.report-orders{margin:0 10px 25px}}
