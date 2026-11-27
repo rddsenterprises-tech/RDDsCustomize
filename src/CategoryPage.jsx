@@ -49,7 +49,7 @@ export default function CategoryPage({category}) {
     load(); return ()=>{live=false;};
   },[category.name]);
   const total=useMemo(()=>cart.reduce((s,p)=>s+Number(p.price),0),[cart]);
-  const deliveryFee=customer.city.trim().toLowerCase()==='karachi'?300:500;
+  const deliveryFee=customer.city.trim().toLowerCase().includes('karachi')?300:500;
   const grandTotal=total+deliveryFee;
   const add=p=>setCart(old=>[...old,p]);
   const removeCartItem=index=>setCart(old=>old.filter((_,i)=>i!==index));
