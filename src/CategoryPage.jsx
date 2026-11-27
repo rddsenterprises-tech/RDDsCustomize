@@ -12,6 +12,7 @@ export default function CategoryPage({category}) {
   const [checkout,setCheckout] = useState(false);
   const [saving,setSaving] = useState(false);
   const [notice,setNotice] = useState('');
+  const [completedOrder,setCompletedOrder] = useState(null);
   const [customer,setCustomer] = useState({name:'',phone:'',city:'',address:'',payment:'cod',note:''});
   useEffect(() => {
     let live=true;
@@ -31,8 +32,8 @@ export default function CategoryPage({category}) {
   const add=p=>setCart(old=>[...old,p]);
   const placeOrder=async e=>{
     e.preventDefault();
-    if(!supabase){setNotice('Order database is not connected yet. Please contact us on WhatsApp.');return;}
-    const tab=window.open('about:blank','_blank');setSaving(true);
+    if(!supabase){setNotice('Order database is not connected yet. Please try again later.');return;}
+    setSaving(true);
     const items=cart.map(p=>({id:p.id,name:p.name,price:Number(p.price),quantity:1}));
     const {data,error}=await supabase.from('orders').insert({
       customer_name:customer.name.trim(),phone:customer.phone.trim(),city:customer.city.trim(),
@@ -60,9 +61,11 @@ export default function CategoryPage({category}) {
     </main>
     <footer id="contact"><div className="footer-main"><a className="brand" href="/"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="/shop">Shop all categories</a><a href="/design-your-own">Design Your Own</a><a href="/about">About</a><a href="/contact">Contact</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span></div></footer>
     {notice&&<div className="toast" onClick={()=>setNotice('')}>{notice}</div>}
+
+    {completedOrder&&<div className="modal-backdrop receipt-overlay"><section className="custom-modal receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT</small></div></div><div className="receipt-success">✓ Order placed successfully</div><div className="receipt-meta"><div><small>Order number</small><b>{completedOrder.order_number}</b></div><div><small>Date</small><b>{new Date(completedOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{completedOrder.customer.name}<br/>{completedOrder.customer.phone}<br/>{completedOrder.customer.city}<br/>{completedOrder.customer.address}</p><h3>Order items</h3><div className="receipt-items">{completedOrder.items.map((item,i)=><div key={i}><span>{item.name} × {item.quantity}</span><b>{money(item.price*item.quantity)}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(completedOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(completedOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(completedOrder.total)}</b></div></div><div className="receipt-payment">Payment: Cash on Delivery · Payment status: Unpaid</div>{completedOrder.customer.note&&<p>Note: {completedOrder.customer.note}</p>}<div className="receipt-actions"><button className="btn btn-blue" onClick={()=>window.print()}>Print receipt</button><button className="btn btn-gold" onClick={()=>setCompletedOrder(null)}>Continue shopping</button></div><small className="receipt-thanks">Thank you for shopping with RDDS Customized.</small></section></div>}
     {checkout&&<div className="modal-backdrop" onClick={()=>!saving&&setCheckout(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e=>e.stopPropagation()}><div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={()=>setCheckout(false)}><X/></button></div><div className="checkout-summary"><span>{cart.length} item(s)</span><strong>{money(total)}</strong></div>
       <label>Full name<input required value={customer.name} onChange={e=>setCustomer({...customer,name:e.target.value})}/></label><label>Mobile / WhatsApp<input required type="tel" value={customer.phone} onChange={e=>setCustomer({...customer,phone:e.target.value})}/></label><label>City<input required value={customer.city} onChange={e=>setCustomer({...customer,city:e.target.value})}/></label><label>Delivery address<textarea required value={customer.address} onChange={e=>setCustomer({...customer,address:e.target.value})}/></label><label>Order note (optional)<textarea value={customer.note} onChange={e=>setCustomer({...customer,note:e.target.value})}/></label>
       <div className="payment-choice"><p className="eyebrow">PAYMENT METHOD</p><label className="payment-option"><input type="radio" name="payment" checked={customer.payment==='cod'} onChange={()=>setCustomer({...customer,payment:'cod'})}/><span><b>Cash on Delivery</b></span></label><p className="checkout-disclaimer">Online payment gateway will be available soon. Cash on Delivery is currently the only active method.</p></div>
-      <button className="btn btn-gold full" disabled={saving}>{saving?'Saving order…':'Place order & continue to WhatsApp'}</button></form></div>}
+      <button className="btn btn-gold full" disabled={saving}>{saving?'Saving order…':'Place order & get receipt'}</button></form></div>}
   </div>;
 }
