@@ -66,3 +66,16 @@
 .name-style-tabs button{padding:10px 8px;border:1px solid transparent;border-radius:5px;background:transparent;color:#9fc6df;font-size:10px;letter-spacing:.3px;cursor:pointer;transition:.2s}
 .name-style-tabs button.active{border-color:#4ba9e8;background:linear-gradient(110deg,#123b59,#164d70);color:#eaf8ff;box-shadow:0 0 14px #168bd333}
 .builder-fields .builder-name-field{grid-column:1/-1}
+
+/* Couple-name designer controls */
+.couple-symbol-picker{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.couple-symbol-picker>span{width:100%;color:#9fc6df;font-size:9px;letter-spacing:.4px}
+.couple-symbol-picker button{display:flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid #23445b;border-radius:6px;background:#07121b;color:#b9d9eb;font-size:10px;cursor:pointer}
+.couple-symbol-picker button b{font-size:18px;line-height:1;color:#9edcff}
+.couple-symbol-picker button.selected{border-color:#55b9f4;background:#123b59;color:#f2fbff;box-shadow:0 0 14px #168bd333}
+.couple-name-fields{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.couple-name-fields label{min-width:0}
+.couple-preview-names{display:flex;align-items:center;justify-content:center;gap:8px;max-width:100%;flex-wrap:wrap}
+.couple-preview-names strong{font:italic 600 clamp(19px,2.5vw,31px)/1.1 'Playfair Display',serif;overflow-wrap:anywhere}
+.couple-preview-symbol{font-size:clamp(20px,2.7vw,34px);line-height:1}
+@media(max-width:380px){.couple-name-fields{grid-template-columns:1fr}}
