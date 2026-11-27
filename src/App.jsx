@@ -23,6 +23,7 @@ function App() {
 }
 
 function StoreHome() {
+  const currentPage = window.location.pathname.replace(/\/$/, '') || '/';
   const [cart, setCart] = useState([]);
   const [catalogProducts, setCatalogProducts] = useState(products);
   useEffect(() => { if (!supabase) return; supabase.from('products').select('*').eq('is_active', true).order('created_at', {ascending:false}).then(({data,error}) => { if (!error) setCatalogProducts((data || []).map(p => ({...p, art:'✧', tone:'blue'}))); }); }, []);
@@ -87,8 +88,8 @@ function StoreHome() {
       <a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a>
       <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Toggle menu"><Menu /></button>
       <nav className={mobileMenu ? 'nav open' : 'nav'}>
-        <a className="active" href="#">Home</a><div className="nav-dropdown"><a href="/shop">Shop <ChevronDown size={13}/></a><div className="nav-menu"><a href="/shop">All Products</a>{categories.map(c => <a key={c.slug} href={`/${c.slug}`}>{c.name}</a>)}</div></div>
-        <a href="#hero-customizer">Design Your Own</a><a href="#about">About</a><a href="#contact">Contact</a>
+        <a className={currentPage === '/' ? 'active' : ''} href="/">Home</a><div className="nav-dropdown"><a href="/shop">Shop <ChevronDown size={13}/></a><div className="nav-menu"><a href="/shop">All Products</a>{categories.map(c => <a key={c.slug} href={`/${c.slug}`}>{c.name}</a>)}</div></div>
+        <a className={currentPage === '/design-your-own' ? 'active' : ''} href="/design-your-own">Design Your Own</a><a className={currentPage === '/about' ? 'active' : ''} href="/about">About</a><a className={currentPage === '/contact' ? 'active' : ''} href="/contact">Contact</a>
       </nav>
       <div className="header-actions">
         <label className="search"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search products..." /><Search size={18}/></label>
@@ -98,7 +99,7 @@ function StoreHome() {
     </header>
 
     <main>
-      <section className="hero">
+      {(currentPage === '/' || currentPage === '/design-your-own') && <section className="hero">
         <div className="hero-copy"><p className="eyebrow">THE ART OF PERSONALIZATION</p><h1>Make every gift<br/><span>unforgettable.</span></h1>
           <p className="hero-desc">Personalized gifts, custom neon signs and décor made around your ideas.</p>
           <div className="hero-buttons"><a className="btn btn-gold" href="#shop">Explore Collection <ArrowUpRight size={17}/></a><a className="text-link" href="#hero-customizer">Create your own <ArrowUpRight size={16}/></a></div>
@@ -118,21 +119,22 @@ function StoreHome() {
         </div>
       </section>
 
-      <section className="section category-section"><div className="section-heading"><div><p className="eyebrow">FIND YOUR SOMETHING SPECIAL</p><h2>Shop by <span>Category</span></h2></div><a href="/shop" className="view-link">View all categories <ArrowUpRight size={16}/></a></div>
+      {currentPage === '/' && <section className="section category-section"><div className="section-heading"><div><p className="eyebrow">FIND YOUR SOMETHING SPECIAL</p><h2>Shop by <span>Category</span></h2></div><a href="/shop" className="view-link">View all categories <ArrowUpRight size={16}/></a></div>
         <div className="category-grid">{categories.map(c => <a className="category-card" key={c.slug} href={`/${c.slug}`}><span className="category-icon">{c.icon}</span><b>{c.name}</b><small>{c.sub}</small><ArrowUpRight className="category-arrow" size={17}/></a>)}</div>
       </section>
 
-      <section className="section" id="shop"><div className="section-heading"><div><p className="eyebrow">CUSTOMER FAVOURITES</p><h2>Made to be <span>loved.</span></h2></div><span className="muted">{activeCategory === 'All' ? 'Our popular picks' : <button className="clear-filter" onClick={() => setActiveCategory('All')}>Clear: {activeCategory} ×</button>}</span></div>
+      {currentPage === '/' && <section className="section" id="shop"><div className="section-heading"><div><p className="eyebrow">CUSTOMER FAVOURITES</p><h2>Made to be <span>loved.</span></h2></div><span className="muted">{activeCategory === 'All' ? 'Our popular picks' : <button className="clear-filter" onClick={() => setActiveCategory('All')}>Clear: {activeCategory} ×</button>}</span></div>
         <div className="product-grid">{visibleProducts.map(p => <article className="product-card" key={p.id}><div className={`product-visual ${p.tone}`}>{p.image_url ? <img src={p.image_url} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <span className="product-art">{p.art}</span>}<small>{p.tag}</small><button className="quick-add" onClick={() => addToCart(p)} aria-label={`Add ${p.name} to cart`}><Plus size={18}/></button></div><div className="product-info"><div><h3>{p.name}</h3><p>{money(p.price)}</p></div><button className="add-button" onClick={() => addToCart(p)}>Add to cart <Plus size={14}/></button></div></article>)}</div>
         {visibleProducts.length === 0 && <p className="empty-cart">No products match this search. Try another name or category.</p>}
       </section>
 
-      <section className="section process" id="about"><div className="center-heading"><p className="eyebrow">SIMPLE. PERSONAL. SPECIAL.</p><h2>How it <span>works</span></h2></div><div className="steps"><div><b>01</b><span>✧</span><h3>Choose</h3><p>Pick the product you love.</p></div><div><b>02</b><span>✎</span><h3>Personalize</h3><p>Share your name, photo or idea.</p></div><div><b>03</b><span>♡</span><h3>Approve</h3><p>Confirm your design with us.</p></div><div><b>04</b><span>↗</span><h3>Receive</h3><p>We craft it and deliver to you.</p></div></div></section>
+      {currentPage === '/about' && <section className="section process" id="about"><div className="center-heading"><p className="eyebrow">SIMPLE. PERSONAL. SPECIAL.</p><h2>How it <span>works</span></h2></div><div className="steps"><div><b>01</b><span>✧</span><h3>Choose</h3><p>Pick the product you love.</p></div><div><b>02</b><span>✎</span><h3>Personalize</h3><p>Share your name, photo or idea.</p></div><div><b>03</b><span>♡</span><h3>Approve</h3><p>Confirm your design with us.</p></div><div><b>04</b><span>↗</span><h3>Receive</h3><p>We craft it and deliver to you.</p></div></div></section>
 
-      <section className="trust-strip"><div><Truck/><b>Delivery Across Pakistan</b><small>Carefully packed, delivered to you</small></div><div><ShieldCheck/><b>Made With Care</b><small>Quality you can feel</small></div><div><Headset/><b>Personal Support</b><small>We help bring your idea to life</small></div></section>
+      {(currentPage === '/' || currentPage === '/about' || currentPage === '/contact') && <section className="trust-strip"><div><Truck/><b>Delivery Across Pakistan</b><small>Carefully packed, delivered to you</small></div><div><ShieldCheck/><b>Made With Care</b><small>Quality you can feel</small></div><div><Headset/><b>Personal Support</b><small>We help bring your idea to life</small></div></section>
     </main>
 
-    <footer id="contact"><div className="footer-main"><a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="/shop">Shop</a><a href="#hero-customizer">Design Your Own</a><a href="#about">Our Process</a><a href="mailto:hello@rddscustomized.com">Email Us</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span><span>Crafted around your imagination ✦</span></div></footer>
+    {currentPage === '/contact' && <section className="section contact-page"><div className="center-heading"><p className="eyebrow">WE WOULD LOVE TO HEAR FROM YOU</p><h2>Let’s create something <span>special.</span></h2><p>Share your idea or ask us anything about custom products and delivery.</p></div><div className="contact-actions"><a className="btn btn-blue" href="https://wa.me/?text=Hi%20RDDS%20Customized%2C%20I%20have%20an%20inquiry.">Chat on WhatsApp <ArrowUpRight size={17}/></a><a className="text-link" href="mailto:hello@rddscustomized.com">hello@rddscustomized.com</a></div></section>}
+    {currentPage !== '/contact' && <footer id="contact"><div className="footer-main"><a className="brand" href="#"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="/shop">Shop</a><a href="#hero-customizer">Design Your Own</a><a href="#about">Our Process</a><a href="mailto:hello@rddscustomized.com">Email Us</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span><span>Crafted around your imagination ✦</span></div></footer>}
 
     {toast && <div className="toast">{toast}</div>}
     <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();setCheckoutOpen(true);}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
