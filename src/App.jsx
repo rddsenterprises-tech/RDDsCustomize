@@ -11,14 +11,7 @@ const categories = [
   { name: 'Photo Frames', sub: 'Keep memories close', icon: '🖼️', slug: 'photo-frames' },
   { name: 'Custom Apparel', sub: 'Wear your story', icon: '👕', slug: 'custom-apparel' },
 ];
-const products = [
-  { id: 1, name: 'Islamic Acrylic Lamp', price: 2999, tag: 'Bestseller', art: '☾', tone: 'amber', category: 'LED Lighting' },
-  { id: 2, name: 'Personalized Photo Frame', price: 2499, tag: 'Made for memories', art: '♡', tone: 'rose', category: 'Photo Frames' },
-  { id: 3, name: 'Dream Big Neon Sign', price: 3499, tag: 'Custom neon', art: '✦', tone: 'violet', category: 'Neon Signs' },
-  { id: 4, name: 'Custom Name Cushion', price: 1999, tag: 'Personalized', art: '❦', tone: 'cream', category: 'Personalized Gifts' },
-  { id: 5, name: '3D Photo Cube', price: 3199, tag: 'Unique gift', art: '▧', tone: 'gold', category: 'Photo Frames' },
-  { id: 6, name: 'Wooden Name Sign', price: 1499, tag: 'Made to order', art: 'A', tone: 'wood', category: 'Wall Décor' },
-];
+const products = [];
 const money = n => `Rs. ${n.toLocaleString('en-PK')}`;
 
 function App() {
@@ -31,7 +24,7 @@ function App() {
 function StoreHome() {
   const [cart, setCart] = useState([]);
   const [catalogProducts, setCatalogProducts] = useState(products);
-  useEffect(() => { if (!supabase) return; supabase.from('products').select('*').eq('is_active', true).order('created_at', {ascending:false}).then(({data,error}) => { if (!error && data?.length) setCatalogProducts(data.map(p => ({...p, art:'✧', tone:'amber'}))); }); }, []);
+  useEffect(() => { if (!supabase) return; supabase.from('products').select('*').eq('is_active', true).order('created_at', {ascending:false}).then(({data,error}) => { if (!error) setCatalogProducts((data || []).map(p => ({...p, art:'✧', tone:'blue'}))); }); }, []);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [mobileMenu, setMobileMenu] = useState(false);
