@@ -102,14 +102,41 @@ export default function LiveChat() {
   const send=async e=>{
     e?.preventDefault();
     const message=draft.trim();
-    if(!message||!chatClient||!session||busy)return;
+    if(!message||!chatClient||busy)return;
     setBusy(true);
+
+    // Retry session setup on demand so the Send button never silently stays disabled
+    // if the initial auth event was missed or anonymous auth is still initializing.
+    let activeSession=session;
+    if(!activeSession){
+      const {data:{session:accountSession}}=supabase
+        ? await supabase.auth.getSession()
+        : {data:{session:null}};
+      if(accountSession?.user && accountSession.user.app_metadata?.app_role!=='admin'){
+        const {data,error}=await chatClient.auth.setSession({
+          access_token:accountSession.access_token,
+          refresh_token:accountSession.refresh_token
+        });
+        if(error){setStatus('Customer account connection failed: '+error.message);setBusy(false);return;}
+        activeSession=data.session;
+      }else{
+        const {data:{session:stored}}=await chatClient.auth.getSession();
+        activeSession=stored?.user?.app_metadata?.app_role==='admin'?null:stored;
+        if(!activeSession){
+          await chatClient.auth.signOut();
+          const {data,error}=await chatClient.auth.signInAnonymously();
+          if(error){setStatus('Guest chat login failed: '+error.message+' — please enable Anonymous Sign-Ins in Supabase Auth.');setBusy(false);return;}
+          activeSession=data.session;
+        }
+      }
+      setSession(activeSession);
+    }
     let activeConversation=conversation;
     if(!activeConversation){
       const {data,error}=await chatClient.from('chat_conversations').insert({
-        customer_id:session.user.id,
-        customer_name:session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Website visitor',
-        customer_email:session.user.email || null,
+        customer_id:activeSession.user.id,
+        customer_name:activeSession.user.user_metadata?.full_name || activeSession.user.user_metadata?.name || 'Website visitor',
+        customer_email:activeSession.user.email || null,
         last_message:message
       }).select('*').single();
       if(error){setStatus('Could not start chat: '+error.message);setBusy(false);return;}
@@ -123,7 +150,7 @@ export default function LiveChat() {
     }
     const {error}=await chatClient.from('chat_messages').insert({
       conversation_id:activeConversation.id,
-      sender_id:session.user.id,
+      sender_id:activeSession.user.id,
       sender_role:'customer',
       message
     });
@@ -141,7 +168,7 @@ export default function LiveChat() {
         {messages.map(m=><div key={m.id} className={'live-chat-bubble '+(m.sender_role==='customer'?'mine':'theirs')}><span>{m.message}</span><small>{new Date(m.created_at).toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'})}</small></div>)}
         <div ref={endRef}/>
       </div>
-      <form className="live-chat-compose" onSubmit={send}><input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={!draft.trim()||busy||!session} aria-label="Send message">{busy?<LoaderCircle size={18} className="chat-spin"/>:<Send size={18}/>}</button></form>
+      <form className="live-chat-compose" onSubmit={send}><input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={!draft.trim()||busy} aria-label="Send message">{busy?<LoaderCircle size={18} className="chat-spin"/>:<Send size={18}/>}</button></form>
       <div className="live-chat-foot">Private conversation · RDDS Customized</div>
     </section>}
     <button className={'live-chat-launch '+(open?'is-open':'')} onClick={()=>setOpen(v=>!v)} aria-label={open?'Close support chat':'Chat with us'}>{open?<X size={23}/>:<><MessageCircle size={22}/><span>Chat with us</span></>}</button>
