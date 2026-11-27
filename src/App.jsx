@@ -41,6 +41,7 @@ function StoreHome() {
   const [toast, setToast] = useState('');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState(null);
   const [customer, setCustomer] = useState({name:'',phone:'',email:'',city:'',address:'',note:'',payment:'cod'});
   const visibleProducts = useMemo(() => catalogProducts.filter(p =>
     (activeCategory === 'All' || p.category === activeCategory) &&
@@ -62,7 +63,6 @@ function StoreHome() {
       return;
     }
     if (!cart.length) return;
-    const whatsappWindow = window.open('about:blank','_blank');
     setPlacingOrder(true);
     const items = cart.map(item => ({id:item.id,name:item.name,price:item.price,quantity:1}));
     const paymentMethod = customer.payment;
@@ -138,6 +138,8 @@ function StoreHome() {
 
     {toast && <div className="toast">{toast}</div>}
     <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();setCheckoutOpen(true);}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
+
+    {completedOrder && <div className="modal-backdrop receipt-overlay"><section className="custom-modal receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT</small></div></div><div className="receipt-success">✓ Order placed successfully</div><div className="receipt-meta"><div><small>Order number</small><b>{completedOrder.order_number}</b></div><div><small>Date</small><b>{new Date(completedOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{completedOrder.customer.name}<br/>{completedOrder.customer.phone}<br/>{completedOrder.customer.email}<br/>{completedOrder.customer.city}<br/>{completedOrder.customer.address}</p><h3>Order items</h3><div className="receipt-items">{completedOrder.items.map((item,i)=><div key={i}><span>{item.name} × {item.quantity}</span><b>{money(item.price*item.quantity)}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(completedOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(completedOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(completedOrder.total)}</b></div></div><div className="receipt-payment">Payment: Cash on Delivery · Payment status: Unpaid</div>{completedOrder.customer.note&&<p>Note: {completedOrder.customer.note}</p>}<div className="receipt-actions"><button className="btn btn-blue" onClick={()=>window.print()}>Print receipt</button><button className="btn btn-gold" onClick={()=>setCompletedOrder(null)}>Continue shopping</button></div><small className="receipt-thanks">Thank you for shopping with RDDS Customized.</small></section></div>}
     {checkoutOpen && <div className="modal-backdrop" onClick={() => !placingOrder && setCheckoutOpen(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e => e.stopPropagation()}>
       <div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={() => setCheckoutOpen(false)} disabled={placingOrder}><X/></button></div>
       <div className="checkout-summary"><span>{cart.length} item(s)</span><strong>{money(total)}</strong></div>
@@ -152,7 +154,7 @@ function StoreHome() {
         <p className="checkout-disclaimer">Online payment gateway will be available soon. For now, Cash on Delivery is the only active payment method.</p>
       </div>
       <p className="checkout-disclaimer">Delivery charges, if applicable, will be confirmed by the team before order confirmation.</p>
-      <button className="btn btn-gold full" disabled={placingOrder}>{placingOrder?'Saving order…':'Place order & continue to WhatsApp'} <ArrowUpRight size={16}/></button>
+      <button className="btn btn-gold full" disabled={placingOrder}>{placingOrder?'Saving order…':'Place order & get receipt'} <ArrowUpRight size={16}/></button>
       {!isSupabaseConfigured && <small className="muted">Order database setup is pending. Checkout will activate after connection.</small>}
     </form></div>}
   </div>;
