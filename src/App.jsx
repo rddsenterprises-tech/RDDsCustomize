@@ -30,6 +30,7 @@ function StoreHome() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customName, setCustomName] = useState('');
+  const [nameStyle, setNameStyle] = useState('Single Name');
   const [customText, setCustomText] = useState('');
   const [customType, setCustomType] = useState('Neon Sign');
   const [toast, setToast] = useState('');
@@ -104,9 +105,10 @@ function StoreHome() {
           <div className="builder-preview"><div className="preview-orbit orbit-one"/><div className="preview-orbit orbit-two"/><div className="preview-product"><span className="preview-kicker">{customType.toUpperCase()}</span><strong>{customName.trim() || 'YOUR NAME'}</strong><small>{customText.trim() || 'YOUR IDEA STARTS HERE'}</small></div><span className="preview-caption">LIVE DESIGN PREVIEW</span></div>
           <div className="builder-fields"><div className="builder-heading"><div><p className="eyebrow">MAKE IT PERSONAL</p><h3>Bring your idea <span>to life.</span></h3></div><Sparkles size={22}/></div>
             <label>Choose your product<select value={customType} onChange={e=>setCustomType(e.target.value)}><option>Neon Sign</option><option>Personalized Gift</option><option>Photo Frame</option><option>LED Décor</option><option>Wall Décor</option><option>Engraved Jewellery</option></select></label>
-            <label>Your name or wording<input value={customName} onChange={e=>setCustomName(e.target.value)} placeholder="e.g. Danish, A & S..."/></label>
+            <label>Name style<select value={nameStyle} onChange={e=>{setNameStyle(e.target.value);setCustomName('');}}><option>Single Name</option><option>Couple Name</option></select></label>
+            <label>{nameStyle === 'Couple Name' ? 'Couple names' : 'Your name'}<input value={customName} onChange={e=>setCustomName(e.target.value)} placeholder={nameStyle === 'Couple Name' ? 'e.g. Danish & Ayesha' : 'e.g. Danish'}/></label>
             <label>Describe your design<textarea rows="2" value={customText} onChange={e=>setCustomText(e.target.value)} placeholder="Tell us your style, colour, size or idea..."/></label>
-            <button className="btn btn-blue full" onClick={()=>{const msg=encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Name / wording: ${customName || 'Not provided'}. Design idea: ${customText || 'Please guide me.'}`);window.open(`https://wa.me/?text=${msg}`,'_blank');}}>Customize on WhatsApp <ArrowUpRight size={17}/></button><small className="builder-note">Your design brief opens in WhatsApp — no complicated steps.</small>
+            <button className="btn btn-blue full" onClick={()=>{const msg=encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Name style: ${nameStyle}. Name / wording: ${customName || 'Not provided'}. Design idea: ${customText || 'Please guide me.'}`);window.open(`https://wa.me/?text=${msg}`,'_blank');}}>Customize on WhatsApp <ArrowUpRight size={17}/></button><small className="builder-note">Your design brief opens in WhatsApp — no complicated steps.</small>
           </div>
         </div>
       </section>
