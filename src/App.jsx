@@ -13,6 +13,7 @@ const categories = [
 ];
 const products = [];
 const money = n => `Rs. ${n.toLocaleString('en-PK')}`;
+const lightColors = { 'Ice Blue':'#bfefff', Blue:'#42a5ff', Pink:'#ff70c8', Purple:'#b78aff', Red:'#ff6262', Green:'#66f0a5', 'Warm White':'#fff1cf' };
 
 function App() {
   const path = window.location.pathname.replace(/\/$/, '');
@@ -32,7 +33,8 @@ function StoreHome() {
   const [customName, setCustomName] = useState('');
   const [nameStyle, setNameStyle] = useState('Single Name');
   const [customText, setCustomText] = useState('');
-  const [customType, setCustomType] = useState('Neon Sign');
+  const [customType, setCustomType] = useState('Neon');
+  const [lightColor, setLightColor] = useState('Ice Blue');
   const [toast, setToast] = useState('');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
@@ -102,13 +104,14 @@ function StoreHome() {
         </div>
         <div className="hero-customizer" id="hero-customizer">
           <div className="builder-top"><span className="builder-live"><i/> LIVE CUSTOMIZER</span><span className="builder-step">01 / 01</span></div>
-          <div className="builder-preview"><div className="preview-orbit orbit-one"/><div className="preview-orbit orbit-two"/><div className="preview-product"><span className="preview-kicker">{customType.toUpperCase()}</span><strong>{customName.trim() || 'YOUR NAME'}</strong><small>{customText.trim() || 'YOUR IDEA STARTS HERE'}</small></div><span className="preview-caption">LIVE DESIGN PREVIEW</span></div>
+          <div className="builder-preview"><div className="preview-orbit orbit-one"/><div className="preview-orbit orbit-two"/><div className="preview-product"><span className="preview-kicker">{customType.toUpperCase()}</span><strong style={{color:lightColors[lightColor],textShadow:`0 0 10px ${lightColors[lightColor]}, 0 0 24px ${lightColors[lightColor]}`}}>{customName.trim() || 'YOUR NAME'}</strong><small>{customText.trim() || 'YOUR IDEA STARTS HERE'}</small></div><span className="preview-caption">LIVE DESIGN PREVIEW</span></div>
           <div className="builder-fields"><div className="builder-heading"><div><p className="eyebrow">MAKE IT PERSONAL</p><h3>Bring your idea <span>to life.</span></h3></div><Sparkles size={22}/></div>
             <label>Choose material<select value={customType} onChange={e=>setCustomType(e.target.value)}><option>Neon</option><option>Acrylic</option></select></label>
+            <label>Light colour<select value={lightColor} onChange={e=>setLightColor(e.target.value)}>{Object.keys(lightColors).map(color=><option key={color}>{color}</option>)}</select></label>
             <label>Name style<select value={nameStyle} onChange={e=>{setNameStyle(e.target.value);setCustomName('');}}><option>Single Name</option><option>Couple Name</option></select></label>
             <label>{nameStyle === 'Couple Name' ? 'Couple names' : 'Your name'}<input value={customName} onChange={e=>setCustomName(e.target.value)} placeholder={nameStyle === 'Couple Name' ? 'e.g. Danish & Ayesha' : 'e.g. Danish'}/></label>
             <label>Describe your design<textarea rows="2" value={customText} onChange={e=>setCustomText(e.target.value)} placeholder="Tell us your style, colour, size or idea..."/></label>
-            <button className="btn btn-blue full" onClick={()=>{const msg=encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Name style: ${nameStyle}. Name / wording: ${customName || 'Not provided'}. Design idea: ${customText || 'Please guide me.'}`);window.open(`https://wa.me/?text=${msg}`,'_blank');}}>Customize on WhatsApp <ArrowUpRight size={17}/></button><small className="builder-note">Your design brief opens in WhatsApp — no complicated steps.</small>
+            <button className="btn btn-blue full" onClick={()=>{const msg=encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Light colour: ${lightColor}. Name style: ${nameStyle}. Name / wording: ${customName || 'Not provided'}. Design idea: ${customText || 'Please guide me.'}`);window.open(`https://wa.me/?text=${msg}`,'_blank');}}>Customize on WhatsApp <ArrowUpRight size={17}/></button><small className="builder-note">Your design brief opens in WhatsApp — no complicated steps.</small>
           </div>
         </div>
       </section>
