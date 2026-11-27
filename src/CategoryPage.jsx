@@ -49,6 +49,8 @@ export default function CategoryPage({category}) {
     load(); return ()=>{live=false;};
   },[category.name]);
   const total=useMemo(()=>cart.reduce((s,p)=>s+Number(p.price),0),[cart]);
+  const deliveryFee=customer.city.trim().toLowerCase()==='karachi'?300:500;
+  const grandTotal=total+deliveryFee;
   const add=p=>setCart(old=>[...old,p]);
   const removeCartItem=index=>setCart(old=>old.filter((_,i)=>i!==index));
   const placeOrder=async e=>{
@@ -59,11 +61,11 @@ export default function CategoryPage({category}) {
     const {data,error}=await supabase.from('orders').insert({
       user_id:authSession.user.id,customer_name:customer.name.trim(),phone:customer.phone.trim(),email:customer.email.trim()||authSession.user.email||null,city:customer.city.trim(),
       delivery_address:customer.address.trim(),customer_note:customer.note.trim()||null,items,
-      subtotal:total,delivery_fee:0,total,payment_method:'cod',payment_status:'Unpaid'
+      subtotal:total,delivery_fee:deliveryFee,total:grandTotal,payment_method:'cod',payment_status:'Unpaid'
     }).select('order_number').single();
     setSaving(false);
     if(error){setNotice('Order save nahi hua. Please dobara try karein.');return;}
-    setCompletedOrder({order_number:data.order_number,created_at:new Date().toISOString(),customer:{...customer},items:cart.map(p=>({...p,quantity:1})),subtotal:total,delivery_fee:0,total});
+    setCompletedOrder({order_number:data.order_number,created_at:new Date().toISOString(),customer:{...customer},items:cart.map(p=>({...p,quantity:1})),subtotal:total,delivery_fee:deliveryFee,total:grandTotal});
     setCart([]);
     setCheckout(false);
     setNotice(`Order ${data.order_number} saved successfully.`);
@@ -86,9 +88,9 @@ export default function CategoryPage({category}) {
     <CustomerAccount open={accountOpen} onClose={()=>setAccountOpen(false)} onSessionChange={setAuthSession}/>
 
     {completedOrder&&<div className="modal-backdrop receipt-overlay"><section className="custom-modal receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT</small></div></div><div className="receipt-success">✓ Order placed successfully</div><div className="receipt-meta"><div><small>Order number</small><b>{completedOrder.order_number}</b></div><div><small>Date</small><b>{new Date(completedOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{completedOrder.customer.name}<br/>{completedOrder.customer.phone}<br/>{completedOrder.customer.city}<br/>{completedOrder.customer.address}</p><h3>Order items</h3><div className="receipt-items">{completedOrder.items.map((item,i)=><div key={i}><span>{item.name} × {item.quantity}</span><b>{money(item.price*item.quantity)}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(completedOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(completedOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(completedOrder.total)}</b></div></div><div className="receipt-payment">Payment: Cash on Delivery · Payment status: Unpaid</div>{completedOrder.customer.note&&<p>Note: {completedOrder.customer.note}</p>}<div className="receipt-actions"><button className="btn btn-blue" onClick={()=>window.print()}>Print receipt</button><button className="btn btn-gold" onClick={()=>setCompletedOrder(null)}>Continue shopping</button></div><small className="receipt-thanks">Thank you for shopping with RDDS Customized.</small></section></div>}
-    {checkout&&<div className="modal-backdrop" onClick={()=>!saving&&setCheckout(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e=>e.stopPropagation()}><div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={()=>setCheckout(false)}><X/></button></div><div className="checkout-summary"><span>{cart.length} item(s)</span><strong>{money(total)}</strong></div>
+    {checkout&&<div className="modal-backdrop" onClick={()=>!saving&&setCheckout(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e=>e.stopPropagation()}><div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={()=>setCheckout(false)}><X/></button></div><div className="checkout-summary"><span>{cart.length} item(s) · Subtotal {money(total)} · Delivery {money(deliveryFee)}</span><strong>{money(grandTotal)}</strong></div>
       <label>Full name<input required value={customer.name} onChange={e=>setCustomer({...customer,name:e.target.value})}/></label><label>Mobile / WhatsApp<input required type="tel" value={customer.phone} onChange={e=>setCustomer({...customer,phone:e.target.value})}/></label><label>Email<input type="email" value={customer.email} onChange={e=>setCustomer({...customer,email:e.target.value})}/></label><label>City<input required value={customer.city} onChange={e=>setCustomer({...customer,city:e.target.value})}/></label><label>Delivery address<textarea required value={customer.address} onChange={e=>setCustomer({...customer,address:e.target.value})}/></label><label>Order note (optional)<textarea value={customer.note} onChange={e=>setCustomer({...customer,note:e.target.value})}/></label>
-      <div className="payment-choice"><p className="eyebrow">PAYMENT METHOD</p><label className="payment-option"><input type="radio" name="payment" checked={customer.payment==='cod'} onChange={()=>setCustomer({...customer,payment:'cod'})}/><span><b>Cash on Delivery</b></span></label><p className="checkout-disclaimer">Online payment gateway will be available soon. Cash on Delivery is currently the only active method.</p></div>
+      <p className="checkout-disclaimer">Karachi delivery: Rs. 300 · Outside Karachi: Rs. 500. Total includes delivery charges.</p><div className="payment-choice"><p className="eyebrow">PAYMENT METHOD</p><label className="payment-option"><input type="radio" name="payment" checked={customer.payment==='cod'} onChange={()=>setCustomer({...customer,payment:'cod'})}/><span><b>Cash on Delivery</b></span></label><p className="checkout-disclaimer">Online payment gateway will be available soon. Cash on Delivery is currently the only active method.</p></div>
       <button className="btn btn-gold full" disabled={saving}>{saving?'Saving order…':'Place order & get receipt'}</button></form></div>}
   </div>;
 }
