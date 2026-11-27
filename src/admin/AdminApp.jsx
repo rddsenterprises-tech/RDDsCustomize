@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { LogOut, RefreshCw, Search, PackageCheck, Clock3, Banknote, Truck, CreditCard, ShieldCheck, Settings, ChevronDown } from 'lucide-react';
+import { LogOut, RefreshCw, Search, PackageCheck, Clock3, Banknote, Truck, CreditCard, ShieldCheck, Settings, ChevronDown, Boxes } from 'lucide-react';
+import ProductManager from './ProductManager';
 
 const money = n => `Rs. ${Number(n || 0).toLocaleString('en-PK')}`;
 const statuses = ['New','Confirmed','Processing','Dispatched','Completed','Cancelled'];
@@ -97,11 +98,12 @@ export default function AdminApp() {
       <a className="admin-brand" href="/"><span className="admin-brand-icon">✦</span><span>RDDS <b>Customized</b><small>ADMINISTRATION</small></span></a>
       <p className="sidebar-label">WORKSPACE</p>
       <button className={activeTab==='orders'?'side-link active':'side-link'} onClick={()=>setActiveTab('orders')}><PackageCheck size={18}/> Orders <span>{orders.filter(o=>o.status==='New').length}</span></button>
+      <button className={activeTab==='products'?'side-link active':'side-link'} onClick={()=>setActiveTab('products')}><Boxes size={18}/> Products</button>
       <button className={activeTab==='payments'?'side-link active':'side-link'} onClick={()=>setActiveTab('payments')}><CreditCard size={18}/> Payment settings</button>
       <div className="sidebar-bottom"><div className="admin-user-avatar">A</div><div><b>Administrator</b><small>{session.user?.email}</small></div><button title="Sign out" onClick={()=>supabase.auth.signOut()}><LogOut size={17}/></button></div>
     </aside>
     <section className="admin-main">
-      <header className="admin-topbar"><div><span className="topbar-breadcrumb">RDDS Customized</span><span className="breadcrumb-sep">/</span><b>{activeTab==='orders'?'Orders':'Payment settings'}</b></div><div className="topbar-right"><span className="admin-secure"><i/> Secure session</span><button className="icon-button" onClick={loadOrders} title="Refresh orders"><RefreshCw size={17}/></button></div></header>
+      <header className="admin-topbar"><div><span className="topbar-breadcrumb">RDDS Customized</span><span className="breadcrumb-sep">/</span><b>{activeTab==='orders'?'Orders':activeTab==='products'?'Products':'Payment settings'}</b></div><div className="topbar-right"><span className="admin-secure"><i/> Secure session</span><button className="icon-button" onClick={loadOrders} title="Refresh orders"><RefreshCw size={17}/></button></div></header>
       {error && <div className="admin-error page-error">{error}</div>}
       {activeTab==='orders' ? <>
         <div className="page-heading"><div><p className="admin-eyebrow">STORE OVERVIEW</p><h1>Order management</h1><p>View customer orders, update fulfilment and track payments.</p></div><button className="refresh-button" onClick={loadOrders}><RefreshCw size={16}/> Refresh orders</button></div>
@@ -118,7 +120,7 @@ export default function AdminApp() {
             <div className="order-controls"><label>Order status<select value={order.status} onChange={e=>updateStatus(order.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><label>Payment status<select value={order.payment_status} onChange={e=>updatePaymentStatus(order.id,e.target.value)}><option>Unpaid</option><option>Awaiting verification</option><option>Paid</option><option>Refunded</option></select></label></div>
           </article>)}</div>}
         </section>
-      </> : <div className="page-heading payment-page"><div><p className="admin-eyebrow">CHECKOUT CONFIGURATION</p><h1>Payment settings</h1><p>Manage the payment methods customers can use at checkout.</p></div>
+      </> : activeTab==='products' ? <div className="products-admin-page"><div className="page-heading"><div><p className="admin-eyebrow">STORE CATALOGUE</p><h1>Product management</h1><p>Add, edit, publish or hide products. Stock tracking is not included.</p></div></div><ProductManager /></div> : <div className="page-heading payment-page"><div><p className="admin-eyebrow">CHECKOUT CONFIGURATION</p><h1>Payment settings</h1><p>Manage the payment methods customers can use at checkout.</p></div>
         <section className="payment-method-card"><div className="payment-method-icon"><Banknote size={22}/></div><div className="payment-method-copy"><h3>Cash on Delivery</h3><p>Customers pay when their order is delivered.</p><span className="method-status enabled">Available</span></div><span className="method-toggle on">ON</span></section>
         <section className="payment-method-card"><div className="payment-method-icon"><CreditCard size={22}/></div><div className="payment-method-copy"><h3>Online payment gateway</h3><p>Gateway integration can be connected later. No online gateway is active yet.</p><span className="method-status pending">Setup pending</span></div><span className="method-toggle off">LATER</span></section>
         <div className="payment-info"><Settings size={18}/><p>For now, Cash on Delivery is the available checkout method. Online payment gateway setup will be completed separately when your provider and account details are ready.</p></div>
