@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import CategoryPage from './CategoryPage';
 import ProductDetail from './ProductDetail';
 import CustomerAccount from './CustomerAccount';
+import LiveChat from './LiveChat';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Search, ShoppingBag, Heart, UserRound, Menu, ChevronDown, ArrowUpRight, Sparkles, Truck, ShieldCheck, Headset, Plus, Minus, X } from 'lucide-react';
 
@@ -180,6 +181,7 @@ function StoreHome() {
       <button className="btn btn-gold full" disabled={placingOrder}>{placingOrder?'Saving order…':'Place order & get receipt'} <ArrowUpRight size={16}/></button>
       {!isSupabaseConfigured && <small className="muted">Order database setup is pending. Checkout will activate after connection.</small>}
     </form></div>}
+    <LiveChat />
   </div>;
 }
 export default App;
