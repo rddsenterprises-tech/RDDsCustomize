@@ -67,18 +67,13 @@ export default function LiveChat() {
       await loadCustomerConversation(active);
     };
 
-    const init=async()=>{
-      const {data:{session:accountSession}}=supabase
-        ? await supabase.auth.getSession()
-        : {data:{session:null}};
-      await activateChat(accountSession);
-    };
-    init();
-
     const authSubscription=supabase?.auth.onAuthStateChange((_event,nextSession)=>{
-      // Do not let the website/admin session become the chat identity.
+      // INITIAL_SESSION also supplies the current login, avoiding competing init requests.
       activateChat(nextSession);
     });
+    if(!supabase){
+      activateChat(null);
+    }
 
     return ()=>{
       alive=false;
