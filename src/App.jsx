@@ -149,7 +149,7 @@ function StoreHome() {
       <label>Order note (optional)<textarea value={customer.note} onChange={e=>updateCustomer('note',e.target.value)} placeholder="Customization details or delivery instructions"/></label>
       <div className="payment-choice"><p className="eyebrow">PAYMENT METHOD</p>
         <label className={customer.payment==='cod'?'payment-option selected':'payment-option'}><input type="radio" name="payment" value="cod" checked={customer.payment==='cod'} onChange={e=>updateCustomer('payment',e.target.value)}/><span><b>Cash on Delivery</b><small>Pay when your order arrives</small></span></label>
-        <label className={customer.payment==='bank_transfer'?'payment-option selected':'payment-option'}><input type="radio" name="payment" value="bank_transfer" checked={customer.payment==='bank_transfer'} onChange={e=>updateCustomer('payment',e.target.value)}/><span><b>Online Bank Transfer</b><small>Transfer details will be confirmed by our team</small></span></label>
+        <p className="checkout-disclaimer">Online payment gateway will be available soon. For now, Cash on Delivery is the only active payment method.</p>
       </div>
       <p className="checkout-disclaimer">Delivery charges, if applicable, will be confirmed by the team before order confirmation.</p>
       <button className="btn btn-gold full" disabled={placingOrder}>{placingOrder?'Saving order…':'Place order & continue to WhatsApp'} <ArrowUpRight size={16}/></button>
