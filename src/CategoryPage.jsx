@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowUpRight, ShoppingBag, Plus, Minus, X } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import ProductDetail from './ProductDetail';
 
 const fallback = [];
 const money = n => `Rs. ${Number(n).toLocaleString('en-PK')}`;
@@ -13,6 +14,7 @@ export default function CategoryPage({category}) {
   const [saving,setSaving] = useState(false);
   const [notice,setNotice] = useState('');
   const [completedOrder,setCompletedOrder] = useState(null);
+  const [selectedProduct,setSelectedProduct] = useState(null);
   const [customer,setCustomer] = useState({name:'',phone:'',city:'',address:'',payment:'cod',note:''});
   useEffect(() => {
     let live=true;
@@ -30,6 +32,7 @@ export default function CategoryPage({category}) {
   },[category.name]);
   const total=useMemo(()=>cart.reduce((s,p)=>s+Number(p.price),0),[cart]);
   const add=p=>setCart(old=>[...old,p]);
+  const removeCartItem=index=>setCart(old=>old.filter((_,i)=>i!==index));
   const placeOrder=async e=>{
     e.preventDefault();
     if(!supabase){setNotice('Order database is not connected. Please try again later.');return;}
@@ -51,9 +54,10 @@ export default function CategoryPage({category}) {
     <div className="announcement">PERSONALIZED WITH LOVE · DELIVERY ACROSS PAKISTAN</div>
     <header className="header"><a className="brand" href="/"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><nav className="nav category-nav"><a href="/">Home</a><a href="/shop">All Categories</a><a href="/design-your-own">Design Your Own</a></nav><a className="cart-button category-cart" href="#category-products"><ShoppingBag/> <span>{cart.length}</span></a></header>
     <main>
+      {selectedProduct ? <ProductDetail product={selectedProduct} onBack={()=>setSelectedProduct(null)} cart={cart} onAdd={add} onRemove={removeCartItem} total={total} money={money} onCheckout={()=>setCheckout(true)}/> : <>
       <section className="category-hero"><a href="/shop"><ArrowLeft size={15}/> Back to all categories</a><p className="eyebrow">EXPLORE OUR COLLECTION</p><div className="category-hero-icon">{category.icon}</div><h1>{category.name}</h1><p>{category.sub}. Discover thoughtful designs made around your ideas.</p></section>
       <section className="section" id="category-products"><div className="section-heading"><div><p className="eyebrow">MADE TO BE YOURS</p><h2>Explore <span>{category.name}</span></h2></div><span className="muted">{products.length} products</span></div>
-        {loading?<p className="empty-cart">Loading collection…</p>:products.length===0?<p className="empty-cart">New products are coming soon. Contact us to request a custom design.</p>:<div className="product-grid">{products.map(p=><article className="product-card" key={p.id}><div className="product-visual category-product-image">{p.image_url?<img src={p.image_url} alt={p.name}/>:<span className="product-art">✧</span>}<small>{p.tag||'Made to order'}</small><button className="quick-add" onClick={()=>add(p)} aria-label="Add to cart"><Plus size={18}/></button></div><div className="product-info"><div><h3>{p.name}</h3><p>{money(p.price)}</p>{p.description&&<small>{p.description}</small>}</div><button className="add-button" onClick={()=>add(p)}>Add to cart <Plus size={14}/></button></div></article>)}</div>}
+        {loading?<p className="empty-cart">Loading collection…</p>:products.length===0?<p className="empty-cart">New products are coming soon. Contact us to request a custom design.</p>:<div className="product-grid">{products.map(p=><article className="product-card category-product-card" key={p.id} onClick={()=>setSelectedProduct(p)}><div className="product-visual category-product-image">{p.image_url?<img src={p.image_url} alt={p.name}/>:<span className="product-art">✧</span>}<small>{p.tag||'Made to order'}</small><button className="quick-add" onClick={e=>{e.stopPropagation();add(p);}} aria-label="Add to cart"><Plus size={18}/></button></div><div className="product-info"><div><h3>{p.name}</h3><p>{money(p.price)}</p>{p.description&&<small>{p.description}</small>}</div><button className="add-button" onClick={e=>{e.stopPropagation();setSelectedProduct(p);}}>View details <Plus size={14}/></button></div></article>)}</div>}
       </section>
       {cart.length>0&&<section className="category-checkout section"><div className="dialog-head"><h2>Your cart · {cart.length} item(s)</h2><strong>{money(total)}</strong></div><div className="category-cart-items">{cart.map((p,i)=><div key={i}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={()=>setCart(old=>old.filter((_,n)=>n!==i))}><Minus size={14}/></button></div>)}</div><button className="btn btn-gold" onClick={()=>setCheckout(true)}>Continue to checkout <ArrowUpRight size={16}/></button></section>}
       <section className="trust-strip"><div><b>Delivery Across Pakistan</b><small>Carefully packed, delivered to you</small></div><div><b>Made With Care</b><small>Quality you can feel</small></div><div><b>Personal Support</b><small>We help bring your idea to life</small></div></section>
