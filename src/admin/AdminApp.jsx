@@ -85,6 +85,43 @@ export default function AdminApp() {
   }),[orders,reportFrom,reportTo,reportCity,reportStatus]);
   const reportTotal = reportOrders.reduce((sum,o)=>sum+Number(o.total||0),0);
   const reportDelivery = reportOrders.reduce((sum,o)=>sum+Number(o.delivery_fee||0),0);
+  const printReceipt = () => {
+    const receipt = document.querySelector('.admin-receipt-modal');
+    if (!receipt) return;
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html><html><head><title>Order Receipt</title><style>
+      @page{size:A4;margin:14mm}
+      *{box-sizing:border-box}
+      body{margin:0;background:#fff;color:#172331;font-family:Arial,sans-serif}
+      .receipt-modal{width:100%;max-width:720px;margin:0 auto;padding:0;color:#172331}
+      .receipt-brand{display:flex;align-items:center;gap:12px;border-bottom:2px solid #d8e7f2;padding-bottom:16px}
+      .receipt-brand>span{font-size:34px;color:#178bd0}
+      .receipt-brand div{display:grid;gap:4px}
+      .receipt-brand b{font-size:18px;letter-spacing:1.5px;color:#102c42}
+      .receipt-brand small{font-size:10px;letter-spacing:2px;color:#648096}
+      .receipt-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;padding:13px;background:#f2f7fa}
+      .receipt-meta div{display:grid;gap:5px}.receipt-meta small{font-size:10px;color:#607789}.receipt-meta b{font-size:13px;color:#15364e}
+      h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#547187;margin:18px 0 8px}
+      p{font-size:12px;line-height:1.7;color:#263b4a;overflow-wrap:anywhere}
+      .receipt-items>div,.receipt-totals>div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e7edf1;font-size:12px;color:#263b4a}
+      .receipt-items b,.receipt-totals b{color:#132f43;white-space:nowrap}
+      .receipt-totals{margin-top:12px}.receipt-grand{border-top:2px solid #183d56;font-size:15px!important;font-weight:800}
+      .receipt-grand b{color:#087fc1;font-size:17px}
+      .receipt-payment{margin-top:15px;padding:12px;background:#eef6fb;border-left:3px solid #168bd0;color:#234b64;font-size:11px;line-height:1.7}
+      .receipt-actions{display:none!important}
+    </style></head><body>${receipt.outerHTML}</body></html>`);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+  };
+
   const exportReport = () => {
     const headers = ['Order Number','Date','Customer','Phone','City','Status','Payment Method','Payment Status','Subtotal','Delivery Fee','Total'];
     const rows = reportOrders.map(o => [o.order_number,new Date(o.created_at).toLocaleString('en-PK'),o.customer_name,o.phone,o.city,o.status,o.payment_method,o.payment_status,o.subtotal,o.delivery_fee,o.total]);
@@ -139,11 +176,11 @@ export default function AdminApp() {
             <div className="order-items">{(order.items||[]).map((item,i)=><span key={i}>{item.name} × {item.quantity}</span>)}</div>
             <div className="order-details"><span><Banknote size={15}/> {order.payment_method==='cod'?'Cash on Delivery':'Online payment'} · {order.payment_status}</span><span><Truck size={15}/> {order.delivery_address}</span></div>
             {order.customer_note && <p className="customer-note">Customer note: {order.customer_note}</p>}
-            <div className="order-controls"><button className="refresh-button" onClick={()=>setReceiptOrder(order)}>Separate receipt / Print</button><label>Order status<select value={order.status} onChange={e=>updateStatus(order.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><label>Payment status<select value={order.payment_status} onChange={e=>updatePaymentStatus(order.id,e.target.value)}><option>Unpaid</option><option>Awaiting verification</option><option>Paid</option><option>Refunded</option></select></label></div>
+            <div className="order-controls"><button className="refresh-button" onClick={()=>setReceiptOrder(order)}>Receipt / Print</button><label>Order status<select value={order.status} onChange={e=>updateStatus(order.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><label>Payment status<select value={order.payment_status} onChange={e=>updatePaymentStatus(order.id,e.target.value)}><option>Unpaid</option><option>Awaiting verification</option><option>Paid</option><option>Refunded</option></select></label></div>
           </article>)}</div>}
         </section>
       </> : activeTab==='reports' ? <div className="reports-page">
-        <div className="page-heading"><div><p className="admin-eyebrow">ORDER ANALYTICS</p><h1>Received orders report</h1><p>Filter received orders by date, city and order status. Print each order's separate receipt.</p></div><button className="refresh-button" onClick={exportReport}><Download size={16}/> Export CSV</button></div>
+        <div className="page-heading"><div><p className="admin-eyebrow">ORDER ANALYTICS</p><h1>Received orders report</h1><p>Filter received orders by date, city and order status. Print a receipt for each order.</p></div><button className="refresh-button" onClick={exportReport}><Download size={16}/> Export CSV</button></div>
         <section className="report-filters"><label>From date<input type="date" value={reportFrom} onChange={e=>setReportFrom(e.target.value)}/></label><label>To date<input type="date" value={reportTo} onChange={e=>setReportTo(e.target.value)}/></label><label>City<select value={reportCity} onChange={e=>setReportCity(e.target.value)}>{reportCities.map(city=><option key={city}>{city}</option>)}</select></label><label>Order status<select value={reportStatus} onChange={e=>setReportStatus(e.target.value)}><option>All</option>{statuses.map(st=><option key={st}>{st}</option>)}</select></label><button className="refresh-button" onClick={()=>{setReportFrom('');setReportTo('');setReportCity('All');setReportStatus('All')}}>Clear filters</button></section>
         <div className="report-summary"><article><small>Matching orders</small><strong>{reportOrders.length}</strong></article><article><small>Order value</small><strong>{money(reportTotal)}</strong></article><article><small>Delivery charges</small><strong>{money(reportDelivery)}</strong></article></div>
         <section className="orders-panel report-orders"><div className="orders-panel-head"><div><h2>Report details</h2><p>{reportOrders.length} orders match the selected filters.</p></div></div>{reportOrders.length===0?<div className="admin-empty"><FileText size={32}/><h3>No matching orders</h3><p>Try changing the report filters.</p></div>:<div className="report-table-wrap"><table className="report-table"><thead><tr><th>Order / Date</th><th>Customer</th><th>City</th><th>Status</th><th>Total</th><th>Receipt</th></tr></thead><tbody>{reportOrders.map(order=><tr key={order.id}><td><b>{order.order_number}</b><small>{new Date(order.created_at).toLocaleDateString('en-PK')}</small></td><td>{order.customer_name}<small>{order.phone}</small></td><td>{order.city}</td><td>{order.status}</td><td><b>{money(order.total)}</b></td><td><button className="refresh-button" onClick={()=>setReceiptOrder(order)}><FileText size={14}/> Print receipt</button></td></tr>)}</tbody></table></div>}</section>
@@ -154,6 +191,6 @@ export default function AdminApp() {
       </div>}
     </section>
 
-    {receiptOrder && <div className="receipt-overlay admin-receipt-overlay"><section className="receipt-modal admin-receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>RECEIVED ORDER RECEIPT · ADMIN COPY</small></div></div><div className="receipt-meta"><div><small>Order number</small><b>{receiptOrder.order_number}</b></div><div><small>Order date</small><b>{new Date(receiptOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{receiptOrder.customer_name}<br/>{receiptOrder.phone}<br/>{receiptOrder.email||''}<br/>{receiptOrder.city}<br/>{receiptOrder.delivery_address}</p><h3>Order items</h3><div className="receipt-items">{(receiptOrder.items||[]).map((item,i)=><div key={i}><span>{item.name} × {item.quantity||1}</span><b>{money(Number(item.price)*(item.quantity||1))}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(receiptOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(receiptOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(receiptOrder.total)}</b></div></div><div className="receipt-payment">Payment: {receiptOrder.payment_method==='cod'?'Cash on Delivery':'Online payment'} · {receiptOrder.payment_status}<br/>Order status: {receiptOrder.status}</div>{receiptOrder.customer_note&&<p>Customer note: {receiptOrder.customer_note}</p>}<div className="receipt-actions"><button className="admin-primary" onClick={()=>window.print()}>Print receipt</button><button className="refresh-button" onClick={()=>setReceiptOrder(null)}>Close</button></div></section></div>}
+    {receiptOrder && <div className="receipt-overlay admin-receipt-overlay"><section className="receipt-modal admin-receipt-modal"><div className="receipt-brand"><span>✦</span><div><b>RDDS CUSTOMIZED</b><small>ORDER RECEIPT</small></div></div><div className="receipt-meta"><div><small>Order number</small><b>{receiptOrder.order_number}</b></div><div><small>Order date</small><b>{new Date(receiptOrder.created_at).toLocaleString('en-PK')}</b></div></div><h3>Customer details</h3><p>{receiptOrder.customer_name}<br/>{receiptOrder.phone}<br/>{receiptOrder.email||''}<br/>{receiptOrder.city}<br/>{receiptOrder.delivery_address}</p><h3>Order items</h3><div className="receipt-items">{(receiptOrder.items||[]).map((item,i)=><div key={i}><span>{item.name} × {item.quantity||1}</span><b>{money(Number(item.price)*(item.quantity||1))}</b></div>)}</div><div className="receipt-totals"><div><span>Subtotal</span><b>{money(receiptOrder.subtotal)}</b></div><div><span>Delivery</span><b>{money(receiptOrder.delivery_fee)}</b></div><div className="receipt-grand"><span>Total</span><b>{money(receiptOrder.total)}</b></div></div><div className="receipt-payment">Payment: {receiptOrder.payment_method==='cod'?'Cash on Delivery':'Online payment'} · {receiptOrder.payment_status}<br/>Order status: {receiptOrder.status}</div>{receiptOrder.customer_note&&<p>Customer note: {receiptOrder.customer_note}</p>}<div className="receipt-actions"><button className="admin-primary" onClick={printReceipt}>Print receipt</button><button className="refresh-button" onClick={()=>setReceiptOrder(null)}>Close</button></div></section></div>}
   </main>;
 }
