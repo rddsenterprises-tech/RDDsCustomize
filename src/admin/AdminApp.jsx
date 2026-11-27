@@ -18,8 +18,24 @@ export default function AdminApp() {
 
   useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({data}) => setSession(data.session));
-    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,next) => setSession(next));
+    const acceptSession = async next => {
+      if (next && next.user?.app_metadata?.app_role !== 'admin') {
+        setSession(null);
+        setError('This account is not authorized for the admin panel.');
+        await supabase.auth.signOut();
+        return;
+      }
+      setSession(next);
+    };
+    supabase.auth.getSession().then(({data}) => acceptSession(data.session));
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,next) => {
+      if (!next || next.user?.app_metadata?.app_role === 'admin') setSession(next);
+      else {
+        setSession(null);
+        setError('This account is not authorized for the admin panel.');
+        supabase.auth.signOut();
+      }
+    });
     return () => subscription.unsubscribe();
   }, []);
 
@@ -35,8 +51,12 @@ export default function AdminApp() {
   const login = async e => {
     e.preventDefault(); setError('');
     if (!supabase) return setError('Supabase connection is not configured yet.');
-    const {error:err} = await supabase.auth.signInWithPassword({email,password});
+    const {data,error:err} = await supabase.auth.signInWithPassword({email,password});
     if (err) setError(err.message);
+    else if (data.user?.app_metadata?.app_role !== 'admin') {
+      setError('This account is not authorized for the admin panel.');
+      await supabase.auth.signOut();
+    }
   };
   const updatePaymentStatus = async (id,payment_status) => {
     const {error:err} = await supabase.from('orders').update({payment_status}).eq('id',id);
