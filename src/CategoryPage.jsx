@@ -61,6 +61,7 @@ export default function CategoryPage({category}) {
       </section>
       {cart.length>0&&<section className="category-checkout section"><div className="dialog-head"><h2>Your cart · {cart.length} item(s)</h2><strong>{money(total)}</strong></div><div className="category-cart-items">{cart.map((p,i)=><div key={i}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={()=>setCart(old=>old.filter((_,n)=>n!==i))}><Minus size={14}/></button></div>)}</div><button className="btn btn-gold" onClick={()=>setCheckout(true)}>Continue to checkout <ArrowUpRight size={16}/></button></section>}
       <section className="trust-strip"><div><b>Delivery Across Pakistan</b><small>Carefully packed, delivered to you</small></div><div><b>Made With Care</b><small>Quality you can feel</small></div><div><b>Personal Support</b><small>We help bring your idea to life</small></div></section>
+      </>}
     </main>
     <footer id="contact"><div className="footer-main"><a className="brand" href="/"><span className="brand-mark">✧</span><span><b>RDDS</b><em>Customized</em><small>Imagine it... We Customize it!</small></span></a><p>Little details. Big feelings.<br/>Made personal, just for you.</p><div className="footer-links"><a href="/shop">Shop all categories</a><a href="/design-your-own">Design Your Own</a><a href="/about">About</a><a href="/contact">Contact</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} RDDS Customized. All rights reserved.</span></div></footer>
     {notice&&<div className="toast" onClick={()=>setNotice('')}>{notice}</div>}
