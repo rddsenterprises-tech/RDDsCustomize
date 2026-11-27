@@ -116,10 +116,10 @@ export default function AdminApp() {
       .receipt-actions{display:none!important}
     </style></head><body>${receipt.outerHTML}</body></html>`);
     printWindow.document.close();
-    printWindow.onload = () => {
+    window.setTimeout(() => {
       printWindow.focus();
       printWindow.print();
-    };
+    }, 350);
   };
 
   const exportReport = () => {
