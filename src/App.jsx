@@ -55,7 +55,7 @@ function StoreHome() {
     window.setTimeout(() => setToast(''), 2400);
   };
   const removeFromCart = index => setCart(old => old.filter((_, i) => i !== index));
-  const total = cart.reduce((sum, p) => sum + p.price, 0);
+  const total = cart.reduce((sum, p) => sum + Number(p.price), 0);
   const openCart = () => document.getElementById('cart-panel')?.showModal();
   const updateCustomer = (field,value) => setCustomer(old => ({...old,[field]:value}));
   const placeOrder = async (event) => {
