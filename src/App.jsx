@@ -83,7 +83,7 @@ function StoreHome() {
       <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Toggle menu"><Menu /></button>
       <nav className={mobileMenu ? 'nav open' : 'nav'}>
         <a className="active" href="#">Home</a><div className="nav-dropdown"><a href="/shop">Shop <ChevronDown size={13}/></a><div className="nav-menu"><a href="/shop">All Products</a>{categories.map(c => <a key={c.slug} href={`/${c.slug}`}>{c.name}</a>)}</div></div>
-        <a href="#custom">Design Your Own</a><a href="#about">About</a><a href="#contact">Contact</a>
+        <a href="#hero-customizer">Design Your Own</a><a href="#about">About</a><a href="#contact">Contact</a>
       </nav>
       <div className="header-actions">
         <label className="search"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search products..." /><Search size={18}/></label>
@@ -99,7 +99,16 @@ function StoreHome() {
           <div className="hero-buttons"><a className="btn btn-gold" href="#shop">Explore Collection <ArrowUpRight size={17}/></a><a className="text-link" href="#custom">Create your own <ArrowUpRight size={16}/></a></div>
           <div className="hero-proof"><span>✦</span> Thoughtfully customized <i/> Made for your moments</div>
         </div>
-        <div className="hero-art"><div className="glow glow-one"/><div className="hero-product product-mug"><span>YOUR<br/>NAME<br/>HERE</span></div><div className="hero-product product-neon"><strong>Good<br/>Vibes</strong></div><div className="hero-product product-frame">♡<small>YOUR MEMORY</small></div><div className="hero-caption">YOUR IDEA. OUR CRAFT.</div></div>
+        <div className="hero-customizer" id="hero-customizer">
+          <div className="builder-top"><span className="builder-live"><i/> LIVE CUSTOMIZER</span><span className="builder-step">01 / 01</span></div>
+          <div className="builder-preview"><div className="preview-orbit orbit-one"/><div className="preview-orbit orbit-two"/><div className="preview-product"><span className="preview-kicker">{customType.toUpperCase()}</span><strong>{customName.trim() || 'YOUR NAME'}</strong><small>{customText.trim() || 'YOUR IDEA STARTS HERE'}</small></div><span className="preview-caption">LIVE DESIGN PREVIEW</span></div>
+          <div className="builder-fields"><div className="builder-heading"><div><p className="eyebrow">MAKE IT PERSONAL</p><h3>Bring your idea <span>to life.</span></h3></div><Sparkles size={22}/></div>
+            <label>Choose your product<select value={customType} onChange={e=>setCustomType(e.target.value)}><option>Neon Sign</option><option>Personalized Gift</option><option>Photo Frame</option><option>LED Décor</option><option>Wall Décor</option><option>Engraved Jewellery</option></select></label>
+            <label>Your name or wording<input value={customName} onChange={e=>setCustomName(e.target.value)} placeholder="e.g. Danish, A & S..."/></label>
+            <label>Describe your design<textarea rows="2" value={customText} onChange={e=>setCustomText(e.target.value)} placeholder="Tell us your style, colour, size or idea..."/></label>
+            <button className="btn btn-blue full" onClick={()=>{const msg=encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Name / wording: ${customName || 'Not provided'}. Design idea: ${customText || 'Please guide me.'}`);window.open(`https://wa.me/?text=${msg}`,'_blank');}}>Customize on WhatsApp <ArrowUpRight size={17}/></button><small className="builder-note">Your design brief opens in WhatsApp — no complicated steps.</small>
+          </div>
+        </div>
       </section>
 
       <section className="section category-section"><div className="section-heading"><div><p className="eyebrow">FIND YOUR SOMETHING SPECIAL</p><h2>Shop by <span>Category</span></h2></div><a href="/shop" className="view-link">View all categories <ArrowUpRight size={16}/></a></div>
@@ -111,8 +120,6 @@ function StoreHome() {
         {visibleProducts.length === 0 && <p className="empty-cart">No products match this search. Try another name or category.</p>}
       </section>
 
-      <section className="custom-banner" id="custom"><div className="custom-symbol"><Sparkles size={42}/></div><div><p className="eyebrow">YOUR IMAGINATION, MADE REAL</p><h2>Design something <span>uniquely yours.</span></h2><p>Choose a product, share your idea and let us bring it to life.</p></div><button className="btn btn-gold" onClick={() => setCustomOpen(true)}>Start designing <ArrowUpRight size={17}/></button></section>
-
       <section className="section process" id="about"><div className="center-heading"><p className="eyebrow">SIMPLE. PERSONAL. SPECIAL.</p><h2>How it <span>works</span></h2></div><div className="steps"><div><b>01</b><span>✧</span><h3>Choose</h3><p>Pick the product you love.</p></div><div><b>02</b><span>✎</span><h3>Personalize</h3><p>Share your name, photo or idea.</p></div><div><b>03</b><span>♡</span><h3>Approve</h3><p>Confirm your design with us.</p></div><div><b>04</b><span>↗</span><h3>Receive</h3><p>We craft it and deliver to you.</p></div></div></section>
 
       <section className="trust-strip"><div><Truck/><b>Delivery Across Pakistan</b><small>Carefully packed, delivered to you</small></div><div><ShieldCheck/><b>Made With Care</b><small>Quality you can feel</small></div><div><Headset/><b>Personal Support</b><small>We help bring your idea to life</small></div></section>
@@ -122,8 +129,6 @@ function StoreHome() {
 
     {toast && <div className="toast">{toast}</div>}
     <dialog id="cart-panel" className="cart-dialog"><div className="dialog-head"><h2>Your Cart ({cart.length})</h2><button onClick={() => document.getElementById('cart-panel').close()}><X/></button></div>{cart.length ? <>{cart.map((p,i)=><div className="cart-line" key={`${p.id}-${i}`}><span>{p.name}</span><b>{money(p.price)}</b><button onClick={() => removeFromCart(i)}><Minus size={15}/></button></div>)}<div className="cart-total"><b>Total</b><strong>{money(total)}</strong></div><p className="cart-note">Choose your payment method and enter delivery details to place your order.</p><button className="btn btn-gold full" onClick={() => {document.getElementById('cart-panel')?.close();setCheckoutOpen(true);}}>Proceed to checkout <ArrowUpRight size={16}/></button></> : <p className="empty-cart">Your cart is waiting for something special.</p>}</dialog>
-    {customOpen && <div className="modal-backdrop" onClick={() => setCustomOpen(false)}><div className="custom-modal" onClick={e => e.stopPropagation()}><div className="dialog-head"><div><p className="eyebrow">LET'S MAKE IT YOURS</p><h2>Start your custom order</h2></div><button onClick={() => setCustomOpen(false)}><X/></button></div><label>What would you like to customize?<select value={customType} onChange={e => setCustomType(e.target.value)}><option>Neon Sign</option><option>Personalized Gift</option><option>Photo Frame</option><option>LED Décor</option><option>Wall Décor</option></select></label><label>Your name<input value={customName} onChange={e => setCustomName(e.target.value)} placeholder="Enter your name"/></label><label>Tell us your idea<textarea value={customText} onChange={e => setCustomText(e.target.value)} placeholder="Describe your design, colours, size or message..."/></label><button className="btn btn-gold full" onClick={() => {const msg = encodeURIComponent(`Hi RDDS Customized! I want a custom ${customType}. Name: ${customName || 'Not provided'}. Idea: ${customText || 'Please guide me.'}`); window.open(`https://wa.me/?text=${msg}`, '_blank'); setCustomOpen(false);}}>Send design request on WhatsApp <ArrowUpRight size={16}/></button><small className="muted">This opens WhatsApp with your design brief ready to send.</small></div></div>}
-
     {checkoutOpen && <div className="modal-backdrop" onClick={() => !placingOrder && setCheckoutOpen(false)}><form className="custom-modal checkout-modal" onSubmit={placeOrder} onClick={e => e.stopPropagation()}>
       <div className="dialog-head"><div><p className="eyebrow">SECURE CHECKOUT</p><h2>Delivery & payment</h2></div><button type="button" onClick={() => setCheckoutOpen(false)} disabled={placingOrder}><X/></button></div>
       <div className="checkout-summary"><span>{cart.length} item(s)</span><strong>{money(total)}</strong></div>
