@@ -60,3 +60,9 @@
 @media(max-width:1050px){.hero{grid-template-columns:.8fr 1.2fr;gap:22px}.hero-customizer{padding:14px}.builder-preview{height:150px}}
 @media(max-width:720px){.hero{grid-template-columns:1fr;gap:28px;padding:42px 18px 30px}.hero-customizer{justify-self:stretch;max-width:none;padding:14px}.builder-preview{height:155px}.builder-fields{gap:10px}.builder-heading h3{font-size:18px}.hero-buttons{gap:16px;flex-wrap:wrap}}
 @media(max-width:380px){.builder-fields{grid-template-columns:1fr}.builder-fields label:nth-of-type(3),.builder-fields .btn,.builder-note{grid-column:1}.hero h1{font-size:41px}}
+
+/* Separate Single Name / Couple Name tabs in the hero customizer */
+.name-style-tabs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:4px;border:1px solid #23445b;border-radius:7px;background:#07121b}
+.name-style-tabs button{padding:10px 8px;border:1px solid transparent;border-radius:5px;background:transparent;color:#9fc6df;font-size:10px;letter-spacing:.3px;cursor:pointer;transition:.2s}
+.name-style-tabs button.active{border-color:#4ba9e8;background:linear-gradient(110deg,#123b59,#164d70);color:#eaf8ff;box-shadow:0 0 14px #168bd333}
+.builder-fields .builder-name-field{grid-column:1/-1}
