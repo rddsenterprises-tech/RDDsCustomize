@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { LogOut, RefreshCw, Search, PackageCheck, Clock3, Banknote, Truck, CreditCard, ShieldCheck, Settings, ChevronDown, Boxes, FileText, Download, MessageCircle } from 'lucide-react';
 import ProductManager from './ProductManager';
 import AdminLiveChats from './AdminLiveChats';
+import AdminVisitors from './AdminVisitors';
 
 const money = n => `Rs. ${Number(n || 0).toLocaleString('en-PK')}`;
 const statuses = ['New','Confirmed','Processing','Dispatched','Completed','Cancelled'];
@@ -159,12 +160,13 @@ export default function AdminApp() {
       <button className={activeTab==='orders'?'side-link active':'side-link'} onClick={()=>setActiveTab('orders')}><PackageCheck size={18}/> Orders <span>{orders.filter(o=>o.status==='New').length}</span></button>
       <button className={activeTab==='reports'?'side-link active':'side-link'} onClick={()=>setActiveTab('reports')}><FileText size={18}/> Reports</button>
       <button className={activeTab==='chats'?'side-link active':'side-link'} onClick={()=>setActiveTab('chats')}><MessageCircle size={18}/> Live Chats</button>
+      <button className={activeTab==='visitors'?'side-link active':'side-link'} onClick={()=>setActiveTab('visitors')}><span aria-hidden="true">◎</span> Live Visitors</button>
       <button className={activeTab==='products'?'side-link active':'side-link'} onClick={()=>setActiveTab('products')}><Boxes size={18}/> Products</button>
       <button className={activeTab==='payments'?'side-link active':'side-link'} onClick={()=>setActiveTab('payments')}><CreditCard size={18}/> Payment settings</button>
       <div className="sidebar-bottom"><div className="admin-user-avatar">A</div><div><b>Administrator</b><small>{session.user?.email}</small></div><button title="Sign out" onClick={()=>supabase.auth.signOut()}><LogOut size={17}/></button></div>
     </aside>
     <section className="admin-main">
-      <header className="admin-topbar"><div><span className="topbar-breadcrumb">RDDS Customized</span><span className="breadcrumb-sep">/</span><b>{activeTab==='orders'?'Orders':activeTab==='products'?'Products':activeTab==='reports'?'Reports':activeTab==='chats'?'Live Chats':'Payment settings'}</b></div><div className="topbar-right"><span className="admin-secure"><i/> Secure session</span><button className="icon-button" onClick={loadOrders} title="Refresh orders"><RefreshCw size={17}/></button></div></header>
+      <header className="admin-topbar"><div><span className="topbar-breadcrumb">RDDS Customized</span><span className="breadcrumb-sep">/</span><b>{activeTab==='orders'?'Orders':activeTab==='products'?'Products':activeTab==='reports'?'Reports':activeTab==='chats'?'Live Chats':activeTab==='visitors'?'Live Visitors':'Payment settings'}</b></div><div className="topbar-right"><span className="admin-secure"><i/> Secure session</span><button className="icon-button" onClick={loadOrders} title="Refresh orders"><RefreshCw size={17}/></button></div></header>
       {error && <div className="admin-error page-error">{error}</div>}
       {activeTab==='orders' ? <>
         <div className="page-heading"><div><p className="admin-eyebrow">STORE OVERVIEW</p><h1>Order management</h1><p>View customer orders, update fulfilment and track payments.</p></div><button className="refresh-button" onClick={loadOrders}><RefreshCw size={16}/> Refresh orders</button></div>
@@ -181,7 +183,7 @@ export default function AdminApp() {
             <div className="order-controls"><button className="refresh-button" onClick={()=>setReceiptOrder(order)}>Receipt / Print</button><label>Order status<select value={order.status} onChange={e=>updateStatus(order.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><label>Payment status<select value={order.payment_status} onChange={e=>updatePaymentStatus(order.id,e.target.value)}><option>Unpaid</option><option>Awaiting verification</option><option>Paid</option><option>Refunded</option></select></label></div>
           </article>)}</div>}
         </section>
-      </> : activeTab==='chats' ? <AdminLiveChats session={session}/> : activeTab==='reports' ? <div className="reports-page">
+      </> : activeTab==='chats' ? <AdminLiveChats session={session}/> : activeTab==='visitors' ? <AdminVisitors/> : activeTab==='reports' ? <div className="reports-page">
         <div className="page-heading"><div><p className="admin-eyebrow">ORDER ANALYTICS</p><h1>Received orders report</h1><p>Filter received orders by date, city and order status. Print a receipt for each order.</p></div><button className="refresh-button" onClick={exportReport}><Download size={16}/> Export CSV</button></div>
         <section className="report-filters"><label>From date<input type="date" value={reportFrom} onChange={e=>setReportFrom(e.target.value)}/></label><label>To date<input type="date" value={reportTo} onChange={e=>setReportTo(e.target.value)}/></label><label>City<select value={reportCity} onChange={e=>setReportCity(e.target.value)}>{reportCities.map(city=><option key={city}>{city}</option>)}</select></label><label>Order status<select value={reportStatus} onChange={e=>setReportStatus(e.target.value)}><option>All</option>{statuses.map(st=><option key={st}>{st}</option>)}</select></label><button className="refresh-button" onClick={()=>{setReportFrom('');setReportTo('');setReportCity('All');setReportStatus('All')}}>Clear filters</button></section>
         <div className="report-summary"><article><small>Matching orders</small><strong>{reportOrders.length}</strong></article><article><small>Order value</small><strong>{money(reportTotal)}</strong></article><article><small>Delivery charges</small><strong>{money(reportDelivery)}</strong></article></div>
