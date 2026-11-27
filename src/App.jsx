@@ -65,7 +65,7 @@ function StoreHome() {
   };
   const removeFromCart = index => setCart(old => old.filter((_, i) => i !== index));
   const total = cart.reduce((sum, p) => sum + Number(p.price), 0);
-  const deliveryFee = customer.city.trim().toLowerCase() === 'karachi' ? 300 : 500;
+  const deliveryFee = customer.city.trim().toLowerCase().includes('karachi') ? 300 : 500;
   const grandTotal = total + deliveryFee;
   const openCart = () => document.getElementById('cart-panel')?.showModal();
   const updateCustomer = (field,value) => setCustomer(old => ({...old,[field]:value}));
