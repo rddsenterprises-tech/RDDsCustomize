@@ -209,3 +209,25 @@
  .admin-order .order-controls label{grid-template-columns:105px minmax(0,1fr)}
  .admin-order .order-card-head>strong{font-size:15px}
 }
+
+
+/* Accessibility: stronger text contrast throughout the admin panel */
+:root{--muted:#52647a}
+.login-subtitle,.page-heading p:not(.admin-eyebrow),.orders-panel-head p,
+.topbar-breadcrumb,.admin-secure,.admin-stats small,.order-card-head small,
+.order-customer,.order-details,.customer-note,.report-table td small,
+.report-summary small,.report-filters label,.pm-heading p:not(.admin-eyebrow),
+.pm-list>p,.pm-product-info small,.pm-form-top p:not(.admin-eyebrow),
+.pm-table th,.report-table th,.sidebar-bottom small,.admin-empty,
+.login-footnote{color:#52647a}
+.sidebar-label{color:#586b82}
+.side-link{color:#465a72}
+.filter-select,.filter-select select,.order-controls label,
+.pm-form>label:not(.pm-upload):not(.pm-active),.pm-form-grid>label,
+.pm-active{color:#40536a}
+.admin-search,.admin-search input{color:#40536a}
+.admin-search input::placeholder{color:#65778e;opacity:1}
+.pm-table td,.report-table td{color:#40536a}
+.pm-table-product small,.report-table td small{color:#52647a}
+.order-items span{color:#40536a}
+.admin-empty{color:#52647a}
