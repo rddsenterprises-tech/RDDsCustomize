@@ -3,6 +3,7 @@ import CategoryPage from './CategoryPage';
 import ProductDetail from './ProductDetail';
 import CustomerAccount from './CustomerAccount';
 import LiveChat from './LiveChat';
+import VisitorTracker from './VisitorTracker';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Search, ShoppingBag, Heart, UserRound, Menu, ChevronDown, ArrowUpRight, Sparkles, Truck, ShieldCheck, Headset, Plus, Minus, X } from 'lucide-react';
 
@@ -21,8 +22,7 @@ const lightColors = { 'Ice Blue':'#bfefff', Blue:'#42a5ff', Pink:'#ff70c8', Purp
 function App() {
   const path = window.location.pathname.replace(/\/$/, '');
   const pageCategory = path === '/shop' ? {name:'All Products',sub:'Browse every collection',icon:'🛍️',slug:'shop'} : categories.find(c => c.slug === path.slice(1));
-  if (pageCategory) return <CategoryPage category={pageCategory} />;
-  return <StoreHome />;
+  return <><VisitorTracker />{pageCategory ? <CategoryPage category={pageCategory} /> : <StoreHome />}</>;
 }
 
 function StoreHome() {
